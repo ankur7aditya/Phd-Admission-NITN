@@ -1,7 +1,6 @@
 {
   "name": "phd-website-backend",
   "version": "1.0.0",
-  "type": "module",
   "description": "Backend for PhD Website",
   "main": "server.js",
   "scripts": {

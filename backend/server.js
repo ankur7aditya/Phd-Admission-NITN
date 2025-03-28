@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const academicRoutes = require("./routes/AcademicDetails");
-import authRoutes from './routes/Authroutes.js';
-import personalRoutes from './routes/personalDetailsroutes.js';
+const authRoutes = require('./routes/Authroutes');
+const personalRoutes = require('./routes/personalDetailsroutes');
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/academic', academicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)

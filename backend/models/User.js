@@ -1,25 +1,30 @@
 import mongoose from 'mongoose';
-import bcryptjs from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-    usernameid:
-    {
-        type: String
+    usernameid: {
+        type: String,
+        required: true,
+        unique: true
     },
-    dob :
-    {
-        type: Date
+    username: {
+        type: String,
+        required: true
+    },
+    dob: {
+        type: Date,
+        required: true
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true,
+        lowercase: true
     },
     password: {
         type: String,
         required: true
     },
-
     createdAt: {
         type: Date,
         default: Date.now
