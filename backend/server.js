@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import academicRoutes from "./routes/AcademicDetails.js";
-import authRoutes from './routes/Authroutes.js';
-import personalRoutes from './routes/personalDetailsroutes.js';
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const academicRoutes = require("./routes/AcademicDetails");
+const authRoutes = require('./routes/Authroutes');
+const personalRoutes = require('./routes/personalDetailsroutes');
 
 // Load environment variables
 dotenv.config();
