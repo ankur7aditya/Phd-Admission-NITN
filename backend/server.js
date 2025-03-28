@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-const academicRoutes = require("./routes/AcademicDetails");
+import academicRoutes from "./routes/AcademicDetails.js";
 import authRoutes from './routes/Authroutes.js';
 import personalRoutes from './routes/personalDetailsroutes.js';
 
@@ -21,6 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/academic', academicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)

@@ -1,22 +1,39 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { generateNextUserId } from '../utils/userIdGenerator.js';
 
 export const register = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { username, dob, email, password } = req.body;
+        
+        // Check if user exists with email
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
+            return res.status(400).json({ message: "Email already registered" });
         }
+
+        // Generate the next user ID
+        const usernameid = await generateNextUserId();
 
         const salt = await bcryptjs.genSalt(10);
         const hashedPassword = await bcryptjs.hash(password, salt);
-        const user = new User({ email, password: hashedPassword });
+        
+        const user = new User({
+            usernameid,
+            username,
+            dob,
+            email,
+            password: hashedPassword
+        });
         await user.save();
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.status(201).json({ message: "User created successfully", token });
+        res.status(201).json({ 
+            message: "User created successfully", 
+            token,
+            usernameid 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -36,7 +53,12 @@ export const login = async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.json({ message: "Login successful", token });
+        res.json({ 
+            message: "Login successful", 
+            token,
+            usernameid: user.usernameid,
+            username: user.username
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
