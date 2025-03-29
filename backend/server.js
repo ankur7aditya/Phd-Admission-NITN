@@ -15,7 +15,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 'Referrer-Policy'],
