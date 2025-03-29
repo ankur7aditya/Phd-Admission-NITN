@@ -236,7 +236,7 @@ export default function AdmissionForm() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/personal/upload-${type}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-${type}`,
         formData,
         {
           headers: {
@@ -313,7 +313,7 @@ export default function AdmissionForm() {
     try {
       console.log('Submitting form data:', formData);
       const response = await axios.post(
-        'http://localhost:5000/api/personal/create',
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/create`,
         formData,
         {
           headers: {

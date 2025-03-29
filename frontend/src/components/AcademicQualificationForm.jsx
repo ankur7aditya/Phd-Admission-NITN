@@ -259,7 +259,7 @@ export default function AcademicQualificationForm() {
     formData.append('document', file);
 
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {
@@ -356,7 +356,7 @@ export default function AcademicQualificationForm() {
       console.log('Formatted data before submission:', formattedData);
 
       const response = await axios.post(
-        'http://localhost:5000/api/academic/create',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/create`,
         formattedData,
         {
           headers: {
@@ -460,7 +460,7 @@ export default function AcademicQualificationForm() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {
@@ -497,7 +497,7 @@ export default function AcademicQualificationForm() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {

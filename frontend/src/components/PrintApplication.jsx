@@ -443,21 +443,21 @@ export default function PrintApplication() {
         console.log('Fetching personal and academic details...');
         
         // Get user data first
-        const userResponse = await axios.get('http://localhost:5000/api/auth/current-user', {
+        const userResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/current-user`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('User data:', userResponse.data);
         setApplicationNumber(userResponse.data.user.usernameid);
 
         // Fetch personal details
-        const personalResponse = await axios.get('http://localhost:5000/api/personal/get', {
+        const personalResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/personal/get`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('Personal details response:', personalResponse.data);
         setPersonalDetails(personalResponse.data);
 
         // Fetch academic details
-        const academicResponse = await axios.get('http://localhost:5000/api/academic/get', {
+        const academicResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/academic/get`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('Academic details response:', academicResponse.data);
@@ -669,7 +669,7 @@ export default function PrintApplication() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/personal/upload-demand-draft',
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-demand-draft`,
         formData,
         {
           headers: {

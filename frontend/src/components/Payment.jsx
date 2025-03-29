@@ -16,7 +16,7 @@ export default function Payment() {
 
   const fetchPersonalDetails = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/personal/get', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/personal/get`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -38,7 +38,7 @@ export default function Payment() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/personal/upload-demand-draft',
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-demand-draft`,
         formData,
         {
           headers: {
