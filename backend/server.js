@@ -45,7 +45,9 @@ app.use((req, res, next) => {
 app.use('/api/academic', academicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);
-
+app.use('/', (req, res) => {
+    res.send('Hello from backend');
+});
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
