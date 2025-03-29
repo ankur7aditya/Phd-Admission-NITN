@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Document, Page, Text, View, StyleSheet, PDFViewer, Image } from '@react-pdf/renderer';
 import { PDFDocument } from 'pdf-lib';
 import { pdf } from '@react-pdf/renderer';
+import { Input } from './ui/input';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -107,8 +108,7 @@ const styles = StyleSheet.create({
 
 // PDF Document Component
 const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber }) => (
-  <Document>
-    {/* Application Form Page */}
+  <>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <Text style={styles.title}>PhD Admission Application</Text>
@@ -212,43 +212,43 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         {/* Qualifications */}
         <Text style={styles.subsectionTitle}>Qualifications</Text>
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`qual-${index}`} style={styles.row}>
             <Text style={styles.label}>Standard</Text>
             <Text style={styles.value}>{qual.standard}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`degree-${index}`} style={styles.row}>
             <Text style={styles.label}>Degree</Text>
             <Text style={styles.value}>{qual.degree_name}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`univ-${index}`} style={styles.row}>
             <Text style={styles.label}>University</Text>
             <Text style={styles.value}>{qual.university}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`year-${index}`} style={styles.row}>
             <Text style={styles.label}>Year of Completion</Text>
             <Text style={styles.value}>{qual.year_of_completion}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`marks-${index}`} style={styles.row}>
             <Text style={styles.label}>Marks</Text>
             <Text style={styles.value}>{qual.marks_obtained} {qual.marks_type}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`branch-${index}`} style={styles.row}>
             <Text style={styles.label}>Branch</Text>
             <Text style={styles.value}>{qual.branch}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`duration-${index}`} style={styles.row}>
             <Text style={styles.label}>Program Duration</Text>
             <Text style={styles.value}>{qual.program_duration_months} months</Text>
           </View>
@@ -257,149 +257,118 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         {/* Qualifying Exams */}
         <Text style={styles.subsectionTitle}>Qualifying Exams</Text>
         {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Exam Type</Text>
-            <Text style={styles.value}>{exam.exam_type}</Text>
+          <View key={`exam-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Exam Type</Text>
+              <Text style={styles.value}>{exam.exam_type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Registration No</Text>
+              <Text style={styles.value}>{exam.registration_no}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Year of Qualification</Text>
+              <Text style={styles.value}>{exam.year_of_qualification}</Text>
+            </View>
+            
+            {/* NET-specific details */}
+            {exam.exam_type === 'NET' && (
+              <>
+                <View style={styles.row}>
+                  <Text style={styles.label}>NET Type</Text>
+                  <Text style={styles.value}>{exam.net_details?.type}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Subject</Text>
+                  <Text style={styles.value}>{exam.net_details?.subject}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Score</Text>
+                  <Text style={styles.value}>{exam.net_details?.score}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Rank</Text>
+                  <Text style={styles.value}>{exam.net_details?.rank}</Text>
+                </View>
+              </>
+            )}
           </View>
         ))}
-        {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Registration No</Text>
-            <Text style={styles.value}>{exam.registration_no}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Year of Qualification</Text>
-            <Text style={styles.value}>{exam.year_of_qualification}</Text>
-          </View>
-        ))}
-        
-        {/* Exam-specific details */}
-        {exam.exam_type === 'NET' && (
-          <>
-            <View key={`net-type-${index}`} style={styles.row}>
-              <Text style={styles.label}>NET Type</Text>
-              <Text style={styles.value}>{exam.net_details?.type}</Text>
-            </View>
-            <View key={`net-subject-${index}`} style={styles.row}>
-              <Text style={styles.label}>Subject</Text>
-              <Text style={styles.value}>{exam.net_details?.subject}</Text>
-            </View>
-            <View key={`net-score-${index}`} style={styles.row}>
-              <Text style={styles.label}>Score</Text>
-              <Text style={styles.value}>{exam.net_details?.score}</Text>
-            </View>
-            <View key={`net-rank-${index}`} style={styles.row}>
-              <Text style={styles.label}>Rank</Text>
-              <Text style={styles.value}>{exam.net_details?.rank}</Text>
-            </View>
-          </>
-        )}
-        {/* Add other exam types as needed */}
 
         {/* Experience */}
         <Text style={styles.subsectionTitle}>Experience</Text>
         {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Type</Text>
-            <Text style={styles.value}>{exp.type}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Organization</Text>
-            <Text style={styles.value}>{exp.organisation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Place</Text>
-            <Text style={styles.value}>{exp.place}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Period</Text>
-            <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Designation</Text>
-            <Text style={styles.value}>{exp.designation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Monthly Compensation</Text>
-            <Text style={styles.value}>{exp.monthly_compensation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Nature of Work</Text>
-            <Text style={styles.value}>{exp.nature_of_work}</Text>
+          <View key={`exp-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Type</Text>
+              <Text style={styles.value}>{exp.type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Organization</Text>
+              <Text style={styles.value}>{exp.organisation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Place</Text>
+              <Text style={styles.value}>{exp.place}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Period</Text>
+              <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Designation</Text>
+              <Text style={styles.value}>{exp.designation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Monthly Compensation</Text>
+              <Text style={styles.value}>{exp.monthly_compensation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Nature of Work</Text>
+              <Text style={styles.value}>{exp.nature_of_work}</Text>
+            </View>
           </View>
         ))}
 
         {/* Publications */}
         <Text style={styles.subsectionTitle}>Publications</Text>
         {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Type</Text>
-            <Text style={styles.value}>{pub.type}</Text>
+          <View key={`pub-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Type</Text>
+              <Text style={styles.value}>{pub.type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Title</Text>
+              <Text style={styles.value}>{pub.paper_title}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Affiliation</Text>
+              <Text style={styles.value}>{pub.affiliation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Acceptance Year</Text>
+              <Text style={styles.value}>{pub.acceptance_year}</Text>
+            </View>
           </View>
         ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Title</Text>
-            <Text style={styles.value}>{pub.paper_title}</Text>
-          </View>
-        ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Affiliation</Text>
-            <Text style={styles.value}>{pub.affiliation}</Text>
-          </View>
-        ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Acceptance Year</Text>
-            <Text style={styles.value}>{pub.acceptance_year}</Text>
-          </View>
-        ))}
+      </View>
+
+      {/* Payment Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Payment Details</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Demand Draft</Text>
+          <Text style={styles.value}>{personalDetails?.dd_url ? 'Uploaded' : 'Not Uploaded'}</Text>
+        </View>
       </View>
 
       {/* Documents Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Documents</Text>
-        
-        {/* Personal Documents */}
-        <Text style={styles.subsectionTitle}>Personal Documents</Text>
-        {personalDetails?.photo && (
-          <View style={styles.imageContainer}>
-            <Text style={styles.documentTitle}>Photo</Text>
-          </View>
-        )}
-        {personalDetails?.signature && (
-          <View style={styles.imageContainer}>
-            <Text style={styles.documentTitle}>Signature</Text>
-          </View>
-        )}
-
-        {/* Academic Documents */}
-        <Text style={styles.subsectionTitle}>Academic Documents</Text>
-        {academicDetails?.qualifications.map((qual, index) => (
-          qual.document_url && (
-            <View key={index} style={styles.documentContainer}>
-              <Text style={styles.documentTitle}>{qual.standard} - {qual.degree_name}</Text>
-            </View>
-          )
-        ))}
       </View>
     </Page>
-  </Document>
+  </>
 );
 
 export default function PrintApplication() {
@@ -409,6 +378,7 @@ export default function PrintApplication() {
   const [applicationNumber, setApplicationNumber] = useState('');
   const [showPDF, setShowPDF] = useState(false);
   const [mergedPdfUrl, setMergedPdfUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -480,134 +450,191 @@ export default function PrintApplication() {
       // Generate the application form PDF
       console.log('Generating application form PDF...');
       try {
-        const applicationFormPdf = await pdf(
-          <ApplicationPDF 
-            personalDetails={personalDetails} 
-            academicDetails={academicDetails} 
-            applicationNumber={applicationNumber}
-          />
-        ).toBuffer();
+        const pdfBlob = await pdf(
+          <Document>
+            <ApplicationPDF 
+              personalDetails={personalDetails} 
+              academicDetails={academicDetails} 
+              applicationNumber={applicationNumber}
+            />
+          </Document>
+        ).toBlob();
+        
         console.log('Application form PDF generated successfully');
         
         // Load the application form PDF
         console.log('Loading application form PDF...');
-        const applicationFormDoc = await PDFDocument.load(applicationFormPdf);
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const applicationFormDoc = await PDFDocument.load(arrayBuffer);
         console.log('Application form PDF loaded successfully');
         
-        const pages = await mergedPdf.copyPages(applicationFormDoc, applicationFormDoc.getPageIndices());
-        pages.forEach(page => mergedPdf.addPage(page));
-        console.log('Application form pages added to merged PDF');
+        // Copy all pages from the application form
+        const applicationPages = await mergedPdf.copyPages(applicationFormDoc, applicationFormDoc.getPageIndices());
+        applicationPages.forEach(page => mergedPdf.addPage(page));
+        console.log(`Added ${applicationPages.length} pages from application form`);
+
+        // Function to merge a document
+        const mergeDocument = async (docUrl, docType) => {
+          try {
+            console.log(`Processing document for ${docType}...`);
+            const docResponse = await fetch(docUrl);
+            if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
+            const docBytes = await docResponse.arrayBuffer();
+            
+            const contentType = docResponse.headers.get('content-type');
+            if (contentType === 'application/pdf') {
+              const docPdf = await PDFDocument.load(docBytes);
+              const pages = await mergedPdf.copyPages(docPdf, docPdf.getPageIndices());
+              pages.forEach(page => mergedPdf.addPage(page));
+              console.log(`Added ${pages.length} pages from ${docType} document`);
+              return true;
+            } else if (contentType.startsWith('image/')) {
+              const docPage = mergedPdf.addPage();
+              let docImage;
+              
+              if (contentType === 'image/jpeg') {
+                docImage = await mergedPdf.embedJpg(docBytes);
+              } else if (contentType === 'image/png') {
+                docImage = await mergedPdf.embedPng(docBytes);
+              } else {
+                throw new Error(`Unsupported image format: ${contentType}`);
+              }
+              
+              const { width, height } = docImage.scale(1);
+              const pageWidth = docPage.getWidth();
+              const pageHeight = docPage.getHeight();
+              
+              // Calculate dimensions for photo and signature
+              let targetWidth, targetHeight;
+              if (docType === 'photo') {
+                // Photo dimensions: 2x2 inches (144x144 points)
+                targetWidth = 144;
+                targetHeight = 144;
+              } else if (docType === 'signature') {
+                // Signature dimensions: 3x1 inches (216x72 points)
+                targetWidth = 216;
+                targetHeight = 72;
+              } else {
+                // For other images, maintain aspect ratio
+                const scale = Math.min(pageWidth / width, pageHeight / height);
+                targetWidth = width * scale;
+                targetHeight = height * scale;
+              }
+              
+              // Center the image on the page
+              const x = (pageWidth - targetWidth) / 2;
+              const y = (pageHeight - targetHeight) / 2;
+              
+              docPage.drawImage(docImage, {
+                x,
+                y,
+                width: targetWidth,
+                height: targetHeight,
+              });
+              console.log(`Added image from ${docType} document`);
+              return true;
+            } else {
+              console.log(`Skipping unsupported document type for ${docType}: ${contentType}`);
+              return false;
+            }
+          } catch (error) {
+            console.error(`Error processing document for ${docType}:`, error);
+            toast.error(`Failed to add ${docType} document to PDF`);
+            return false;
+          }
+        };
+
+        // Merge all documents
+        const documentsToMerge = [
+          // Personal documents
+          ...(personalDetails?.photo ? [{ url: personalDetails.photo, type: 'photo' }] : []),
+          ...(personalDetails?.signature ? [{ url: personalDetails.signature, type: 'signature' }] : []),
+          ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft' }] : []),
+          
+          // Qualification documents
+          ...(academicDetails?.qualifications?.map(qual => ({
+            url: qual.document_url,
+            type: `qualification-${qual.standard}`
+          })) || []),
+          
+          // Qualifying exam documents
+          ...(academicDetails?.qualifying_exams?.map(exam => ({
+            url: exam.document_url,
+            type: `exam-${exam.exam_type}`
+          })) || []),
+          
+          // Experience documents
+          ...(academicDetails?.experience?.map(exp => ({
+            url: exp.document_url,
+            type: `experience-${exp.organisation}`
+          })) || []),
+          
+          // Publication documents
+          ...(academicDetails?.publications?.map(pub => ({
+            url: pub.document_url,
+            type: `publication-${pub.paper_title}`
+          })) || [])
+        ];
+
+        // Process each document sequentially
+        for (const doc of documentsToMerge) {
+          if (doc.url) {
+            await mergeDocument(doc.url, doc.type);
+          }
+        }
+
+        // Save the merged PDF
+        const mergedPdfBytes = await mergedPdf.save();
+        const finalBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(finalBlob);
+        setMergedPdfUrl(url);
+        setShowPDF(true);
+        toast.success('PDF generated successfully!');
       } catch (error) {
         console.error('Error in application form generation:', error);
         throw new Error(`Failed to generate application form: ${error.message}`);
       }
-
-      // Add personal documents
-      if (personalDetails?.photo) {
-        try {
-          console.log('Processing photo document...');
-          const photoResponse = await fetch(personalDetails.photo);
-          if (!photoResponse.ok) throw new Error(`Failed to fetch photo: ${photoResponse.statusText}`);
-          const photoBytes = await photoResponse.arrayBuffer();
-          
-          const photoPage = mergedPdf.addPage();
-          const photoImage = await mergedPdf.embedJpg(photoBytes);
-          
-          const { width, height } = photoImage.scale(1);
-          const pageWidth = photoPage.getWidth();
-          const pageHeight = photoPage.getHeight();
-          const scale = Math.min(pageWidth / width, pageHeight / height);
-          
-          photoPage.drawImage(photoImage, {
-            x: 0,
-            y: 0,
-            width: width * scale,
-            height: height * scale,
-          });
-        } catch (error) {
-          console.error('Error processing photo:', error);
-          toast.error('Failed to add photo to PDF');
-        }
-      }
-
-      // Add signature if available
-      if (personalDetails?.signature) {
-        try {
-          console.log('Processing signature document...');
-          const signatureResponse = await fetch(personalDetails.signature);
-          if (!signatureResponse.ok) throw new Error(`Failed to fetch signature: ${signatureResponse.statusText}`);
-          const signatureBytes = await signatureResponse.arrayBuffer();
-          
-          const signaturePage = mergedPdf.addPage();
-          const signatureImage = await mergedPdf.embedJpg(signatureBytes);
-          
-          const { width, height } = signatureImage.scale(1);
-          const pageWidth = signaturePage.getWidth();
-          const pageHeight = signaturePage.getHeight();
-          const scale = Math.min(pageWidth / width, pageHeight / height);
-          
-          signaturePage.drawImage(signatureImage, {
-            x: 0,
-            y: 0,
-            width: width * scale,
-            height: height * scale,
-          });
-        } catch (error) {
-          console.error('Error processing signature:', error);
-          toast.error('Failed to add signature to PDF');
-        }
-      }
-
-      // Add academic documents
-      if (academicDetails?.qualifications) {
-        for (const qual of academicDetails.qualifications) {
-          if (qual.document_url) {
-            try {
-              const docResponse = await fetch(qual.document_url);
-              if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
-              const docBytes = await docResponse.arrayBuffer();
-              
-              const contentType = docResponse.headers.get('content-type');
-              if (contentType === 'application/pdf') {
-                const docPdf = await PDFDocument.load(docBytes);
-                const [docPage] = await mergedPdf.copyPages(docPdf, [0]);
-                mergedPdf.addPage(docPage);
-              } else if (contentType.startsWith('image/')) {
-                const docPage = mergedPdf.addPage();
-                const docImage = await mergedPdf.embedJpg(docBytes);
-                
-                const { width, height } = docImage.scale(1);
-                const pageWidth = docPage.getWidth();
-                const pageHeight = docPage.getHeight();
-                const scale = Math.min(pageWidth / width, pageHeight / height);
-                
-                docPage.drawImage(docImage, {
-                  x: 0,
-                  y: 0,
-                  width: width * scale,
-                  height: height * scale,
-                });
-              }
-            } catch (error) {
-              console.error(`Error processing document for ${qual.standard}:`, error);
-              toast.error(`Failed to add ${qual.standard} document to PDF`);
-            }
-          }
-        }
-      }
-
-      // Save the merged PDF
-      const mergedPdfBytes = await mergedPdf.save();
-      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      setMergedPdfUrl(url);
-      setShowPDF(true);
-      toast.success('PDF generated successfully!');
     } catch (error) {
       console.error('Error in PDF generation process:', error);
       toast.error(`Failed to generate PDF: ${error.message}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDDUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('document', file);
+
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/api/personal/upload-demand-draft',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          withCredentials: true
+        }
+      );
+
+      if (response.data.success) {
+        setPersonalDetails(prev => ({
+          ...prev,
+          dd_url: response.data.url
+        }));
+        toast.success('Demand draft uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading demand draft:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload demand draft');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -839,27 +866,17 @@ export default function PrintApplication() {
               {personalDetails?.photo && (
                 <div className="p-3 bg-gray-50 rounded">
                   <p className="text-gray-600 mb-2">Photo</p>
-                  <a 
-                    href={personalDetails.photo} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View Photo
-                  </a>
+                  <div className="aspect-square w-full bg-gray-100 rounded flex items-center justify-center">
+                    <span className="text-gray-400">Photo Preview</span>
+                  </div>
                 </div>
               )}
               {personalDetails?.signature && (
                 <div className="p-3 bg-gray-50 rounded">
                   <p className="text-gray-600 mb-2">Signature</p>
-                  <a 
-                    href={personalDetails.signature} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View Signature
-                  </a>
+                  <div className="aspect-square w-full bg-gray-100 rounded flex items-center justify-center">
+                    <span className="text-gray-400">Signature Preview</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -868,19 +885,123 @@ export default function PrintApplication() {
           {/* Academic Documents */}
           <div>
             <h3 className="text-lg font-medium mb-2">Academic Documents</h3>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-4">
+              {/* Qualification Documents */}
               {academicDetails?.qualifications.map((qual, index) => (
                 qual.document_url && (
-                  <div key={index} className="p-3 bg-gray-50 rounded">
-                    <p className="font-medium mb-2">{qual.standard} - {qual.degree_name}</p>
-                    <iframe
-                      src={qual.document_url}
-                      className="w-full h-[500px] border border-gray-200 rounded"
-                      title={`Document ${index + 1}`}
-                    />
+                  <div key={`qual-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">{qual.standard} - {qual.degree_name}</p>
+                      <a 
+                        href={qual.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={qual.document_url}
+                        className="w-full h-full"
+                        title={`Document ${index + 1}`}
+                      />
+                    </div>
                   </div>
                 )
               ))}
+
+              {/* Experience Documents */}
+              {academicDetails?.experience.map((exp, index) => (
+                exp.document_url && (
+                  <div key={`exp-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">Experience at {exp.organisation}</p>
+                      <a 
+                        href={exp.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={exp.document_url}
+                        className="w-full h-full"
+                        title={`Experience Document ${index + 1}`}
+                      />
+                    </div>
+                  </div>
+                )
+              ))}
+
+              {/* Publication Documents */}
+              {academicDetails?.publications.map((pub, index) => (
+                pub.document_url && (
+                  <div key={`pub-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">{pub.paper_title}</p>
+                      <a 
+                        href={pub.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={pub.document_url}
+                        className="w-full h-full"
+                        title={`Publication Document ${index + 1}`}
+                      />
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Documents */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Payment Documents</h3>
+            <div className="p-3 bg-gray-50 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <p className="font-medium">Demand Draft</p>
+                <div className="flex items-center gap-2">
+                  {personalDetails?.dd_url ? (
+                    <a 
+                      href={personalDetails.dd_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline text-sm"
+                    >
+                      View Document
+                    </a>
+                  ) : (
+                    <Input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleDDUpload}
+                      disabled={isUploading}
+                      className="h-9 text-sm"
+                    />
+                  )}
+                </div>
+              </div>
+              {personalDetails?.dd_url && (
+                <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                  <iframe
+                    src={personalDetails.dd_url}
+                    className="w-full h-full"
+                    title="Demand Draft Document"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

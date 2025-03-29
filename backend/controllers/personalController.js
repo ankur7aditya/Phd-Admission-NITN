@@ -127,9 +127,50 @@ const uploadSignature = async (req, res) => {
     }
 };
 
+// Add this new function for demand draft upload
+const uploadDemandDraft = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    // Upload to Cloudinary
+    const result = await uploadOnCloudinary(req.file.path);
+
+    // Update personal details with dd_url
+    const personalDetails = await PersonalDetails.findOne({ userid: req.user._id });
+    if (!personalDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Personal details not found"
+      });
+    }
+
+    personalDetails.dd_url = result.secure_url;
+    await personalDetails.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Demand draft uploaded successfully",
+      url: result.secure_url
+    });
+  } catch (error) {
+    console.error('Error uploading demand draft:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error uploading demand draft",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
     createPersonal,
     getPersonal,
     uploadPhoto,
-    uploadSignature
+    uploadSignature,
+    uploadDemandDraft
 };

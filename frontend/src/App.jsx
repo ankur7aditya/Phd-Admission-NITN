@@ -8,6 +8,7 @@ import PDFMerger from './components/PDFMerger';
 import NavigationBar from './components/NavigationBar';
 import FormNavigation from './components/FormNavigation';
 import Header from './components/Header';
+import Payment from './components/Payment';
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('accessToken');
@@ -46,6 +47,10 @@ function App() {
             <Route
               path="/academic-details"
               element={isAuthenticated ? <AcademicQualificationForm /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/payment"
+              element={isAuthenticated ? <Payment /> : <Navigate to="/login" />}
             />
             <Route
               path="/print-application"

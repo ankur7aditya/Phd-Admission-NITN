@@ -8,6 +8,7 @@ export default function FormNavigation() {
   const tabs = [
     { path: '/admission-form', label: 'Personal Details' },
     { path: '/academic-details', label: 'Academic Details' },
+    { path: '/payment', label: 'Payment' },
     { path: '/print-application', label: 'Print Application' }
   ];
 

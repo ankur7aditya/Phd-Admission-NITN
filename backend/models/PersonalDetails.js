@@ -176,6 +176,10 @@ const PersonalDetailsSchema = new mongoose.Schema({
             },
             message: "Signature URL must be valid"
         }
+    },
+    dd_url: {
+        type: String,
+        required: false
     }
 }, { timestamps: true });
 
