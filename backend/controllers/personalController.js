@@ -4,9 +4,16 @@ const { uploadOnCloudinary } = require('../utils/cloudinary');
 const createPersonal = async (req, res) => {
     try {
         console.log('Received personal details request:', {
-            userid: req.user._id,
+            userid: req.user?._id,
             body: req.body
         });
+
+        if (!req.user?._id) {
+            console.error('User not found in request');
+            return res.status(401).json({
+                message: 'User not authenticated'
+            });
+        }
 
         // Validate required fields
         const requiredFields = [
@@ -24,6 +31,15 @@ const createPersonal = async (req, res) => {
             });
         }
 
+        // Check if personal details already exist
+        const existingDetails = await PersonalDetails.findOne({ userid: req.user._id });
+        if (existingDetails) {
+            console.error('Personal details already exist for user:', req.user._id);
+            return res.status(400).json({
+                message: 'Personal details already exist for this user'
+            });
+        }
+
         const personalDetails = await PersonalDetails.create({
             userid: req.user._id,
             ...req.body
@@ -36,7 +52,7 @@ const createPersonal = async (req, res) => {
         return res.status(500).json({ 
             message: 'Error creating personal details',
             error: error.message,
-            stack: error.stack
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };

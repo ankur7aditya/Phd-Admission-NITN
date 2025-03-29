@@ -3,33 +3,52 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
-   usernameid:
-   {
-    type:String
-   },
-    email: {
+    usernameid: {
         type: String,
         required: true,
         unique: true,
-        lowercase: true,
         trim: true
+    },
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
     },
     fullName: {
         type: String,
-        required: true,
+        required: [true, 'Full name is required'],
         trim: true,
+        minlength: [2, 'Full name must be at least 2 characters long'],
+        maxlength: [50, 'Full name cannot exceed 50 characters'],
         index: true
     },
     avatar: {
         type: String,
-        required: false
+        required: false,
+        validate: {
+            validator: function(v) {
+                return !v || /^https?:\/\/.+/.test(v);
+            },
+            message: 'Avatar must be a valid URL'
+        }
     },
     password: {
         type: String,
-        required: [true, 'Password is required']
+        required: [true, 'Password is required'],
+        minlength: [8, 'Password must be at least 8 characters long'],
+        validate: {
+            validator: function(v) {
+                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v);
+            },
+            message: 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character'
+        }
     },
     refreshToken: {
-        type: String
+        type: String,
+        required: false
     }
 }, {
     timestamps: true
@@ -51,7 +70,7 @@ userSchema.methods.generateAccessToken = async function() {
         {
             _id: this._id,
             email: this.email,
-            username: this.username,
+            usernameid: this.usernameid,
             fullName: this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,

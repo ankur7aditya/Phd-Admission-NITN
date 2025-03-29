@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -16,12 +17,34 @@ export function Signup() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState({
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+    hasMinLength: false
+  });
+
+  const validatePassword = (password) => {
+    setPasswordValidation({
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[!@#$%^&amp;*(),.?":{}|&lt;&gt;]/.test(password),
+      hasMinLength: password.length >= 8
+    });
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    if (name === 'password') {
+      validatePassword(value);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -45,8 +68,8 @@ export function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signup', {
-        name: formData.name,
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        fullName: formData.name,
         email: formData.email,
         password: formData.password
       });
@@ -112,6 +135,31 @@ export function Signup() {
                 onChange={handleChange}
                 required
               />
+              <div className="text-sm space-y-1">
+                <p className="text-gray-500">Password must contain:</p>
+                <ul className="space-y-1">
+                  <li className={`flex items-center ${passwordValidation.hasUpperCase ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span className="mr-1">{passwordValidation.hasUpperCase ? '✓' : '○'}</span>
+                    At least one uppercase letter
+                  </li>
+                  <li className={`flex items-center ${passwordValidation.hasLowerCase ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span className="mr-1">{passwordValidation.hasLowerCase ? '✓' : '○'}</span>
+                    At least one lowercase letter
+                  </li>
+                  <li className={`flex items-center ${passwordValidation.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span className="mr-1">{passwordValidation.hasNumber ? '✓' : '○'}</span>
+                    At least one number
+                  </li>
+                  <li className={`flex items-center ${passwordValidation.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span className="mr-1">{passwordValidation.hasSpecialChar ? '✓' : '○'}</span>
+                    At least one special character (!@#$%^&amp;*(),.?":{}|&lt;&gt;)
+                  </li>
+                  <li className={`flex items-center ${passwordValidation.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span className="mr-1">{passwordValidation.hasMinLength ? '✓' : '○'}</span>
+                    At least 8 characters long
+                  </li>
+                </ul>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>

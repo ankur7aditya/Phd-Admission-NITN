@@ -11,9 +11,9 @@ const uploadDocument = async (req, res) => {
       return res.status(400).json({ message: "Only PDF files are allowed" });
     }
 
-    // Validate file size (2MB)
-    if (req.file.size > 2 * 1024 * 1024) {
-      return res.status(400).json({ message: "File size should be less than 2MB" });
+    // Validate file size (5MB)
+    if (req.file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({ message: "File size should be less than 5MB" });
     }
 
     const uploadResult = await uploadOnCloudinary(req.file.path);
@@ -22,12 +22,21 @@ const uploadDocument = async (req, res) => {
       return res.status(500).json({ message: "Failed to upload file" });
     }
 
+    // Set security headers
+    res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
     res.status(200).json({
       message: "Document uploaded successfully",
       url: uploadResult.secure_url
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error in uploadDocument:', error);
+    res.status(500).json({ 
+      message: "Error uploading document",
+      error: error.message 
+    });
   }
 };
 

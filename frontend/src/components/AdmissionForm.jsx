@@ -9,6 +9,71 @@ import { ArrowUpFromLine, Loader2 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
+// Validation functions
+const validateName = (name) => {
+  if (!name) return 'Name is required';
+  if (name.length < 2) return 'Name must be at least 2 characters long';
+  if (name.length > 30) return 'Name cannot exceed 30 characters';
+  if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name can only contain letters and spaces';
+  return '';
+};
+
+const validateAge = (dob) => {
+  if (!dob) return 'Date of birth is required';
+  const today = new Date();
+  const birthDate = new Date(dob);
+  const age = today.getFullYear() - birthDate.getFullYear();
+  if (age < 18) return 'Applicant must be at least 18 years old';
+  if (age > 50) return 'Applicant must not be older than 50 years';
+  return '';
+};
+
+const validatePhone = (phone) => {
+  if (!phone) return 'Phone number is required';
+  if (!/^[0-9]{10}$/.test(phone)) return 'Please enter a valid 10-digit mobile number';
+  return '';
+};
+
+const validatePincode = (pincode) => {
+  if (!pincode) return 'PIN code is required';
+  if (!/^[0-9]{6}$/.test(pincode)) return 'Please enter a valid 6-digit PIN code';
+  return '';
+};
+
+const validateEmail = (email) => {
+  if (!email) return 'Email is required';
+  if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+    return 'Please enter a valid email address';
+  }
+  return '';
+};
+
+const validateAddress = (address) => {
+  if (!address.street) return 'Street address is required';
+  if (!address.city) return 'City is required';
+  if (!address.state) return 'State is required';
+  if (!address.pincode) return 'PIN code is required';
+  if (!/^[0-9]{6}$/.test(address.pincode)) return 'Please enter a valid 6-digit PIN code';
+  return '';
+};
+
+const validateFile = (file, type) => {
+  if (!file) return `${type} is required`;
+  
+  // Check file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+  if (file.size > maxSize) {
+    return `${type} size should not exceed 5MB`;
+  }
+
+  // Check file type - only allow PDF
+  if (file.type !== 'application/pdf') {
+    return `${type} must be a PDF file`;
+  }
+
+  return '';
+};
+
 export default function AdmissionForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -46,6 +111,7 @@ export default function AdmissionForm() {
     signature: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [sameAddress, setSameAddress] = useState(false);
@@ -63,23 +129,76 @@ export default function AdmissionForm() {
     localStorage.setItem('admissionFormData', JSON.stringify(formData));
   }, [formData]);
 
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'first_name':
+      case 'last_name':
+      case 'father_name':
+      case 'mother_name':
+        return validateName(value);
+      case 'dob':
+        return validateAge(value);
+      case 'phone':
+        return validatePhone(value);
+      case 'alternate_phone':
+        return value ? validatePhone(value) : '';
+      case 'email':
+        return validateEmail(value);
+      case 'gender':
+        return !value ? 'Gender is required' : '';
+      case 'nationality':
+        return !value ? 'Nationality is required' : '';
+      case 'category':
+        return !value ? 'Category is required' : '';
+      case 'religion':
+        return !value ? 'Religion is required' : '';
+      case 'marital_status':
+        return !value ? 'Marital status is required' : '';
+      case 'communication_address':
+        return validateAddress(value);
+      case 'permanent_address':
+        return validateAddress(value);
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+
+    // Format phone numbers to remove non-digits
+    if (name === 'phone' || name === 'alternate_phone') {
+      newValue = value.replace(/\D/g, '').slice(0, 10);
+    }
+
+    // Format pincode to remove non-digits
+    if (name.includes('pincode')) {
+      newValue = value.replace(/\D/g, '').slice(0, 6);
+    }
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: value
+          [child]: newValue
         }
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: newValue
       }));
     }
+
+    // Validate field and update errors
+    const error = validateField(name, newValue);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handleSameAddressChange = (checked) => {
@@ -95,6 +214,13 @@ export default function AdmissionForm() {
   const handleFileUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validate file before upload
+    const fileError = validateFile(file, type);
+    if (fileError) {
+      toast.error(fileError);
+      return;
+    }
 
     setIsUploading(true);
     const formData = new FormData();
@@ -126,8 +252,54 @@ export default function AdmissionForm() {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Validate all fields
+    Object.keys(formData).forEach(key => {
+      if (typeof formData[key] === 'object') {
+        const error = validateField(key, formData[key]);
+        if (error) {
+          newErrors[key] = error;
+          isValid = false;
+        }
+      } else {
+        const error = validateField(key, formData[key]);
+        if (error) {
+          newErrors[key] = error;
+          isValid = false;
+        }
+      }
+    });
+
+    // Validate spouse name based on marital status
+    if (formData.marital_status !== 'Single' && !formData.spouse_name) {
+      newErrors.spouse_name = 'Spouse name is required for married, divorced, or widowed applicants';
+      isValid = false;
+    }
+
+    // Validate addresses
+    if (!sameAddress) {
+      const permanentAddressError = validateAddress(formData.permanent_address);
+      if (permanentAddressError) {
+        newErrors.permanent_address = permanentAddressError;
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Please fix the validation errors before submitting');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -173,7 +345,11 @@ export default function AdmissionForm() {
               value={formData.first_name}
               onChange={handleChange}
               required
+              className={errors.first_name ? "border-red-500" : ""}
             />
+            {errors.first_name && (
+              <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="last_name">Last Name</Label>
@@ -183,7 +359,11 @@ export default function AdmissionForm() {
               value={formData.last_name}
               onChange={handleChange}
               required
+              className={errors.last_name ? "border-red-500" : ""}
             />
+            {errors.last_name && (
+              <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>
+            )}
           </div>
         </div>
 
@@ -198,7 +378,11 @@ export default function AdmissionForm() {
               value={formData.dob}
               onChange={handleChange}
               required
+              className={errors.dob ? "border-red-500" : ""}
             />
+            {errors.dob && (
+              <p className="text-sm text-red-500 mt-1">{errors.dob}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="gender">Gender</Label>
@@ -206,7 +390,7 @@ export default function AdmissionForm() {
               value={formData.gender}
               onValueChange={(value) => handleChange({ target: { name: 'gender', value } })}
             >
-              <SelectTrigger>
+              <SelectTrigger className={errors.gender ? "border-red-500" : ""}>
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -215,6 +399,9 @@ export default function AdmissionForm() {
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
+            {errors.gender && (
+              <p className="text-sm text-red-500 mt-1">{errors.gender}</p>
+            )}
           </div>
         </div>
 
@@ -316,7 +503,11 @@ export default function AdmissionForm() {
               value={formData.email}
               onChange={handleChange}
               required
+              className={errors.email ? "border-red-500" : ""}
             />
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="phone">Phone Number</Label>
@@ -327,7 +518,11 @@ export default function AdmissionForm() {
               value={formData.phone}
               onChange={handleChange}
               required
+              className={errors.phone ? "border-red-500" : ""}
             />
+            {errors.phone && (
+              <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+            )}
           </div>
         </div>
 
@@ -402,7 +597,11 @@ export default function AdmissionForm() {
                 value={formData.communication_address.pincode}
                 onChange={handleChange}
                 required
+                className={errors['communication_address.pincode'] ? "border-red-500" : ""}
               />
+              {errors['communication_address.pincode'] && (
+                <p className="text-sm text-red-500 mt-1">{errors['communication_address.pincode']}</p>
+              )}
             </div>
           </div>
         </div>
@@ -483,7 +682,11 @@ export default function AdmissionForm() {
                 onChange={handleChange}
                 required
                 disabled={sameAddress}
+                className={errors['permanent_address.pincode'] ? "border-red-500" : ""}
               />
+              {errors['permanent_address.pincode'] && (
+                <p className="text-sm text-red-500 mt-1">{errors['permanent_address.pincode']}</p>
+              )}
             </div>
           </div>
         </div>
@@ -495,17 +698,21 @@ export default function AdmissionForm() {
             <div className="mt-2">
               <Input
                 type="file"
-                accept="image/*"
+                accept=".pdf"
                 onChange={(e) => handleFileUpload(e, 'photo')}
                 disabled={isUploading}
               />
+              {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
               {formData.photo && (
                 <div className="mt-2">
-                  <img
-                    src={formData.photo}
-                    alt="Uploaded photo"
-                    className="w-32 h-32 object-cover rounded"
-                  />
+                  <a
+                    href={formData.photo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    View uploaded PDF
+                  </a>
                 </div>
               )}
             </div>
@@ -515,17 +722,21 @@ export default function AdmissionForm() {
             <div className="mt-2">
               <Input
                 type="file"
-                accept="image/*"
+                accept=".pdf"
                 onChange={(e) => handleFileUpload(e, 'signature')}
                 disabled={isUploading}
               />
+              {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
               {formData.signature && (
                 <div className="mt-2">
-                  <img
-                    src={formData.signature}
-                    alt="Uploaded signature"
-                    className="w-32 h-16 object-contain"
-                  />
+                  <a
+                    href={formData.signature}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    View uploaded PDF
+                  </a>
                 </div>
               )}
             </div>
