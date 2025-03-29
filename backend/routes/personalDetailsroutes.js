@@ -1,20 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const PersonalDetails = require('../models/PersonalDetails');
 const { verifyJWT } = require('../middleware/authMiddleware');
-const { documentUpload } = require('../middleware/multer');
-const { createPersonal, getPersonal, uploadPhoto, uploadSignature } = require('../controllers/personalController');
+const { documentUpload, imageUpload } = require('../middleware/multer');
+const personalController = require('../controllers/personalController');
+
+// Debug log to check imported functions
+console.log('Imported functions:', {
+    createPersonal: !!personalController.createPersonal,
+    getPersonal: !!personalController.getPersonal,
+    uploadPhoto: !!personalController.uploadPhoto,
+    uploadSignature: !!personalController.uploadSignature,
+    uploadDemandDraft: !!personalController.uploadDemandDraft
+});
 
 // Create personal details
-router.post('/create', verifyJWT, createPersonal);
+router.post('/create', verifyJWT, personalController.createPersonal);
 
 // Get personal details
-router.get('/get', verifyJWT, getPersonal);
+router.get('/get', verifyJWT, personalController.getPersonal);
 
 // Upload photo
-router.post('/upload-photo', verifyJWT, documentUpload.single('photo'), uploadPhoto);
+router.post('/upload-photo', verifyJWT, imageUpload.single('photo'), personalController.uploadPhoto);
 
 // Upload signature
-router.post('/upload-signature', verifyJWT, documentUpload.single('signature'), uploadSignature);
+router.post('/upload-signature', verifyJWT, imageUpload.single('signature'), personalController.uploadSignature);
+
+// Upload demand draft
+router.post('/upload-demand-draft', 
+  verifyJWT,
+  documentUpload.single('document'),
+  personalController.uploadDemandDraft
+);
 
 module.exports = router;

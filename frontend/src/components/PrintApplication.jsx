@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Document, Page, Text, View, StyleSheet, PDFViewer, Image } from '@react-pdf/renderer';
 import { PDFDocument } from 'pdf-lib';
 import { pdf } from '@react-pdf/renderer';
+import { Input } from './ui/input';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -87,11 +88,7 @@ const styles = StyleSheet.create({
   },
   documentContainer: {
     marginVertical: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderStyle: 'solid',
-    backgroundColor: '#f9f9f9',
+    alignItems: 'center',
   },
   documentTitle: {
     fontSize: 12,
@@ -103,12 +100,45 @@ const styles = StyleSheet.create({
     height: 400,
     objectFit: 'contain',
   },
+  photo: {
+    width: 144, // 2 inches at 72 DPI
+    height: 144, // 2 inches at 72 DPI
+    objectFit: 'cover',
+  },
+  signature: {
+    width: 216, // 3 inches at 72 DPI
+    height: 72, // 1 inch at 72 DPI
+    objectFit: 'contain',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  personalDetails: {
+    flex: 1,
+    marginRight: 20,
+  },
+  photoSignatureContainer: {
+    width: 200,
+    alignItems: 'center',
+  },
+  photoContainer: {
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 2,
+  },
+  signatureContainer: {
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 2,
+  },
 });
 
 // PDF Document Component
 const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber }) => (
-  <Document>
-    {/* Application Form Page */}
+  <>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <Text style={styles.title}>PhD Admission Application</Text>
@@ -117,63 +147,89 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
 
       {/* Personal Details Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Details</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>{personalDetails?.first_name} {personalDetails?.last_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Date of Birth</Text>
-          <Text style={styles.value}>{new Date(personalDetails?.dob).toLocaleDateString()}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Gender</Text>
-          <Text style={styles.value}>{personalDetails?.gender}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Nationality</Text>
-          <Text style={styles.value}>{personalDetails?.nationality}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Category</Text>
-          <Text style={styles.value}>{personalDetails?.category}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Religion</Text>
-          <Text style={styles.value}>{personalDetails?.religion}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Father's Name</Text>
-          <Text style={styles.value}>{personalDetails?.father_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Mother's Name</Text>
-          <Text style={styles.value}>{personalDetails?.mother_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Marital Status</Text>
-          <Text style={styles.value}>{personalDetails?.marital_status}</Text>
-        </View>
-        {personalDetails?.marital_status !== 'Single' && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Spouse Name</Text>
-            <Text style={styles.value}>{personalDetails?.spouse_name}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.personalDetails}>
+            <Text style={styles.sectionTitle}>Personal Details</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Name</Text>
+              <Text style={styles.value}>{personalDetails?.first_name} {personalDetails?.last_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Date of Birth</Text>
+              <Text style={styles.value}>{new Date(personalDetails?.dob).toLocaleDateString()}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Gender</Text>
+              <Text style={styles.value}>{personalDetails?.gender}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Nationality</Text>
+              <Text style={styles.value}>{personalDetails?.nationality}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Category</Text>
+              <Text style={styles.value}>{personalDetails?.category}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Religion</Text>
+              <Text style={styles.value}>{personalDetails?.religion}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Father's Name</Text>
+              <Text style={styles.value}>{personalDetails?.father_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Mother's Name</Text>
+              <Text style={styles.value}>{personalDetails?.mother_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Marital Status</Text>
+              <Text style={styles.value}>{personalDetails?.marital_status}</Text>
+            </View>
+            {personalDetails?.marital_status !== 'Single' && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Spouse Name</Text>
+                <Text style={styles.value}>{personalDetails?.spouse_name}</Text>
+              </View>
+            )}
+            <View style={styles.row}>
+              <Text style={styles.label}>Email</Text>
+              <Text style={styles.value}>{personalDetails?.email}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.value}>{personalDetails?.phone}</Text>
+            </View>
+            {personalDetails?.alternate_phone && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Alternate Phone</Text>
+                <Text style={styles.value}>{personalDetails.alternate_phone}</Text>
+              </View>
+            )}
           </View>
-        )}
-        <View style={styles.row}>
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{personalDetails?.email}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Phone</Text>
-          <Text style={styles.value}>{personalDetails?.phone}</Text>
-        </View>
-        {personalDetails?.alternate_phone && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Alternate Phone</Text>
-            <Text style={styles.value}>{personalDetails.alternate_phone}</Text>
+          
+          {/* Photo and Signature */}
+          <View style={styles.photoSignatureContainer}>
+            {personalDetails?.photo && (
+              <View style={styles.photoContainer}>
+                <Image
+                  src={personalDetails.photo}
+                  style={styles.photo}
+                  cache={false}
+                />
+              </View>
+            )}
+            {personalDetails?.signature && (
+              <View style={styles.signatureContainer}>
+                <Image
+                  src={personalDetails.signature}
+                  style={styles.signature}
+                  cache={false}
+                />
+              </View>
+            )}
           </View>
-        )}
+        </View>
       </View>
 
       {/* Address Section */}
@@ -212,43 +268,43 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         {/* Qualifications */}
         <Text style={styles.subsectionTitle}>Qualifications</Text>
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`qual-${index}`} style={styles.row}>
             <Text style={styles.label}>Standard</Text>
             <Text style={styles.value}>{qual.standard}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`degree-${index}`} style={styles.row}>
             <Text style={styles.label}>Degree</Text>
             <Text style={styles.value}>{qual.degree_name}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`univ-${index}`} style={styles.row}>
             <Text style={styles.label}>University</Text>
             <Text style={styles.value}>{qual.university}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`year-${index}`} style={styles.row}>
             <Text style={styles.label}>Year of Completion</Text>
             <Text style={styles.value}>{qual.year_of_completion}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`marks-${index}`} style={styles.row}>
             <Text style={styles.label}>Marks</Text>
             <Text style={styles.value}>{qual.marks_obtained} {qual.marks_type}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`branch-${index}`} style={styles.row}>
             <Text style={styles.label}>Branch</Text>
             <Text style={styles.value}>{qual.branch}</Text>
           </View>
         ))}
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={index} style={styles.row}>
+          <View key={`duration-${index}`} style={styles.row}>
             <Text style={styles.label}>Program Duration</Text>
             <Text style={styles.value}>{qual.program_duration_months} months</Text>
           </View>
@@ -257,149 +313,118 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         {/* Qualifying Exams */}
         <Text style={styles.subsectionTitle}>Qualifying Exams</Text>
         {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Exam Type</Text>
-            <Text style={styles.value}>{exam.exam_type}</Text>
+          <View key={`exam-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Exam Type</Text>
+              <Text style={styles.value}>{exam.exam_type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Registration No</Text>
+              <Text style={styles.value}>{exam.registration_no}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Year of Qualification</Text>
+              <Text style={styles.value}>{exam.year_of_qualification}</Text>
+            </View>
+            
+            {/* NET-specific details */}
+            {exam.exam_type === 'NET' && (
+              <>
+                <View style={styles.row}>
+                  <Text style={styles.label}>NET Type</Text>
+                  <Text style={styles.value}>{exam.net_details?.type}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Subject</Text>
+                  <Text style={styles.value}>{exam.net_details?.subject}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Score</Text>
+                  <Text style={styles.value}>{exam.net_details?.score}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Rank</Text>
+                  <Text style={styles.value}>{exam.net_details?.rank}</Text>
+                </View>
+              </>
+            )}
           </View>
         ))}
-        {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Registration No</Text>
-            <Text style={styles.value}>{exam.registration_no}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Year of Qualification</Text>
-            <Text style={styles.value}>{exam.year_of_qualification}</Text>
-          </View>
-        ))}
-        
-        {/* Exam-specific details */}
-        {exam.exam_type === 'NET' && (
-          <>
-            <View key={`net-type-${index}`} style={styles.row}>
-              <Text style={styles.label}>NET Type</Text>
-              <Text style={styles.value}>{exam.net_details?.type}</Text>
-            </View>
-            <View key={`net-subject-${index}`} style={styles.row}>
-              <Text style={styles.label}>Subject</Text>
-              <Text style={styles.value}>{exam.net_details?.subject}</Text>
-            </View>
-            <View key={`net-score-${index}`} style={styles.row}>
-              <Text style={styles.label}>Score</Text>
-              <Text style={styles.value}>{exam.net_details?.score}</Text>
-            </View>
-            <View key={`net-rank-${index}`} style={styles.row}>
-              <Text style={styles.label}>Rank</Text>
-              <Text style={styles.value}>{exam.net_details?.rank}</Text>
-            </View>
-          </>
-        )}
-        {/* Add other exam types as needed */}
 
         {/* Experience */}
         <Text style={styles.subsectionTitle}>Experience</Text>
         {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Type</Text>
-            <Text style={styles.value}>{exp.type}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Organization</Text>
-            <Text style={styles.value}>{exp.organisation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Place</Text>
-            <Text style={styles.value}>{exp.place}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Period</Text>
-            <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Designation</Text>
-            <Text style={styles.value}>{exp.designation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Monthly Compensation</Text>
-            <Text style={styles.value}>{exp.monthly_compensation}</Text>
-          </View>
-        ))}
-        {academicDetails?.experience.map((exp, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Nature of Work</Text>
-            <Text style={styles.value}>{exp.nature_of_work}</Text>
+          <View key={`exp-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Type</Text>
+              <Text style={styles.value}>{exp.type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Organization</Text>
+              <Text style={styles.value}>{exp.organisation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Place</Text>
+              <Text style={styles.value}>{exp.place}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Period</Text>
+              <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Designation</Text>
+              <Text style={styles.value}>{exp.designation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Monthly Compensation</Text>
+              <Text style={styles.value}>{exp.monthly_compensation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Nature of Work</Text>
+              <Text style={styles.value}>{exp.nature_of_work}</Text>
+            </View>
           </View>
         ))}
 
         {/* Publications */}
         <Text style={styles.subsectionTitle}>Publications</Text>
         {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Type</Text>
-            <Text style={styles.value}>{pub.type}</Text>
+          <View key={`pub-${index}`}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Type</Text>
+              <Text style={styles.value}>{pub.type}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Title</Text>
+              <Text style={styles.value}>{pub.paper_title}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Affiliation</Text>
+              <Text style={styles.value}>{pub.affiliation}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Acceptance Year</Text>
+              <Text style={styles.value}>{pub.acceptance_year}</Text>
+            </View>
           </View>
         ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Title</Text>
-            <Text style={styles.value}>{pub.paper_title}</Text>
-          </View>
-        ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Affiliation</Text>
-            <Text style={styles.value}>{pub.affiliation}</Text>
-          </View>
-        ))}
-        {academicDetails?.publications.map((pub, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>Acceptance Year</Text>
-            <Text style={styles.value}>{pub.acceptance_year}</Text>
-          </View>
-        ))}
+      </View>
+
+      {/* Payment Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Payment Details</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Demand Draft</Text>
+          <Text style={styles.value}>{personalDetails?.dd_url ? 'Uploaded' : 'Not Uploaded'}</Text>
+        </View>
       </View>
 
       {/* Documents Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Documents</Text>
-        
-        {/* Personal Documents */}
-        <Text style={styles.subsectionTitle}>Personal Documents</Text>
-        {personalDetails?.photo && (
-          <View style={styles.imageContainer}>
-            <Text style={styles.documentTitle}>Photo</Text>
-          </View>
-        )}
-        {personalDetails?.signature && (
-          <View style={styles.imageContainer}>
-            <Text style={styles.documentTitle}>Signature</Text>
-          </View>
-        )}
-
-        {/* Academic Documents */}
-        <Text style={styles.subsectionTitle}>Academic Documents</Text>
-        {academicDetails?.qualifications.map((qual, index) => (
-          qual.document_url && (
-            <View key={index} style={styles.documentContainer}>
-              <Text style={styles.documentTitle}>{qual.standard} - {qual.degree_name}</Text>
-            </View>
-          )
-        ))}
       </View>
     </Page>
-  </Document>
+  </>
 );
 
 export default function PrintApplication() {
@@ -409,6 +434,7 @@ export default function PrintApplication() {
   const [applicationNumber, setApplicationNumber] = useState('');
   const [showPDF, setShowPDF] = useState(false);
   const [mergedPdfUrl, setMergedPdfUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -417,21 +443,21 @@ export default function PrintApplication() {
         console.log('Fetching personal and academic details...');
         
         // Get user data first
-        const userResponse = await axios.get('http://localhost:5000/api/auth/current-user', {
+        const userResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/current-user`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('User data:', userResponse.data);
         setApplicationNumber(userResponse.data.user.usernameid);
 
         // Fetch personal details
-        const personalResponse = await axios.get('http://localhost:5000/api/personal/get', {
+        const personalResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/personal/get`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('Personal details response:', personalResponse.data);
         setPersonalDetails(personalResponse.data);
 
         // Fetch academic details
-        const academicResponse = await axios.get('http://localhost:5000/api/academic/get', {
+        const academicResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/academic/get`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         console.log('Academic details response:', academicResponse.data);
@@ -480,134 +506,192 @@ export default function PrintApplication() {
       // Generate the application form PDF
       console.log('Generating application form PDF...');
       try {
-        const applicationFormPdf = await pdf(
-          <ApplicationPDF 
-            personalDetails={personalDetails} 
-            academicDetails={academicDetails} 
-            applicationNumber={applicationNumber}
-          />
-        ).toBuffer();
+        const pdfBlob = await pdf(
+          <Document>
+            <ApplicationPDF 
+              personalDetails={personalDetails} 
+              academicDetails={academicDetails} 
+              applicationNumber={applicationNumber}
+            />
+          </Document>
+        ).toBlob();
+        
         console.log('Application form PDF generated successfully');
         
         // Load the application form PDF
         console.log('Loading application form PDF...');
-        const applicationFormDoc = await PDFDocument.load(applicationFormPdf);
+        const arrayBuffer = await pdfBlob.arrayBuffer();
+        const applicationFormDoc = await PDFDocument.load(arrayBuffer);
         console.log('Application form PDF loaded successfully');
         
-        const pages = await mergedPdf.copyPages(applicationFormDoc, applicationFormDoc.getPageIndices());
-        pages.forEach(page => mergedPdf.addPage(page));
-        console.log('Application form pages added to merged PDF');
+        // Copy all pages from the application form
+        const applicationPages = await mergedPdf.copyPages(applicationFormDoc, applicationFormDoc.getPageIndices());
+        applicationPages.forEach(page => mergedPdf.addPage(page));
+        console.log(`Added ${applicationPages.length} pages from application form`);
+
+        // Merge all documents
+        const documentsToMerge = [
+          // Personal documents - only demand draft
+          ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft', contentType: 'application/pdf' }] : []),
+          
+          // Qualification documents
+          ...(academicDetails?.qualifications?.map(qual => ({
+            url: qual.document_url,
+            type: `qualification-${qual.standard}`,
+            contentType: 'application/pdf'
+          })) || []),
+          
+          // Qualifying exam documents
+          ...(academicDetails?.qualifying_exams?.map(exam => ({
+            url: exam.document_url,
+            type: `exam-${exam.exam_type}`,
+            contentType: 'application/pdf'
+          })) || []),
+          
+          // Experience documents
+          ...(academicDetails?.experience?.map(exp => ({
+            url: exp.document_url,
+            type: `experience-${exp.organisation}`,
+            contentType: 'application/pdf'
+          })) || []),
+          
+          // Publication documents
+          ...(academicDetails?.publications?.map(pub => ({
+            url: pub.document_url,
+            type: `publication-${pub.paper_title}`,
+            contentType: 'application/pdf'
+          })) || [])
+        ];
+
+        // Process each document sequentially
+        for (const doc of documentsToMerge) {
+          if (doc.url) {
+            try {
+              console.log(`Processing document for ${doc.type}...`);
+              const docResponse = await fetch(doc.url);
+              if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
+              const docBytes = await docResponse.arrayBuffer();
+              
+              if (doc.contentType === 'application/pdf') {
+                const docPdf = await PDFDocument.load(docBytes);
+                const pages = await mergedPdf.copyPages(docPdf, docPdf.getPageIndices());
+                pages.forEach(page => mergedPdf.addPage(page));
+                console.log(`Added ${pages.length} pages from ${doc.type} document`);
+              } else if (doc.contentType.startsWith('image/')) {
+                const docPage = mergedPdf.addPage();
+                let docImage;
+                
+                try {
+                  if (doc.contentType === 'image/jpeg') {
+                    docImage = await mergedPdf.embedJpg(docBytes);
+                  } else if (doc.contentType === 'image/png') {
+                    docImage = await mergedPdf.embedPng(docBytes);
+                  } else {
+                    throw new Error(`Unsupported image format: ${doc.contentType}`);
+                  }
+                  
+                  const { width, height } = docImage.scale(1);
+                  const pageWidth = docPage.getWidth();
+                  const pageHeight = docPage.getHeight();
+                  
+                  // Calculate dimensions for photo and signature
+                  let targetWidth, targetHeight;
+                  if (doc.type === 'photo') {
+                    // Photo dimensions: 2x2 inches (144x144 points)
+                    targetWidth = 144;
+                    targetHeight = 144;
+                  } else if (doc.type === 'signature') {
+                    // Signature dimensions: 3x1 inches (216x72 points)
+                    targetWidth = 216;
+                    targetHeight = 72;
+                  } else {
+                    // For other images, maintain aspect ratio
+                    const scale = Math.min(pageWidth / width, pageHeight / height);
+                    targetWidth = width * scale;
+                    targetHeight = height * scale;
+                  }
+                  
+                  // Center the image on the page
+                  const x = (pageWidth - targetWidth) / 2;
+                  const y = (pageHeight - targetHeight) / 2;
+                  
+                  docPage.drawImage(docImage, {
+                    x,
+                    y,
+                    width: targetWidth,
+                    height: targetHeight,
+                  });
+                  console.log(`Added image from ${doc.type} document`);
+                } catch (imageError) {
+                  console.error(`Error processing image for ${doc.type}:`, imageError);
+                  // Add a text placeholder if image processing fails
+                  docPage.drawText(`[${doc.type} image could not be processed]`, {
+                    x: 50,
+                    y: pageHeight / 2,
+                    size: 12,
+                    color: rgb(1, 0, 0),
+                  });
+                }
+              }
+            } catch (error) {
+              console.error(`Error processing document for ${doc.type}:`, error);
+              toast.error(`Failed to add ${doc.type} document to PDF`);
+            }
+          }
+        }
+
+        // Save the merged PDF
+        const mergedPdfBytes = await mergedPdf.save();
+        const finalBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(finalBlob);
+        setMergedPdfUrl(url);
+        setShowPDF(true);
+        toast.success('PDF generated successfully!');
       } catch (error) {
         console.error('Error in application form generation:', error);
         throw new Error(`Failed to generate application form: ${error.message}`);
       }
-
-      // Add personal documents
-      if (personalDetails?.photo) {
-        try {
-          console.log('Processing photo document...');
-          const photoResponse = await fetch(personalDetails.photo);
-          if (!photoResponse.ok) throw new Error(`Failed to fetch photo: ${photoResponse.statusText}`);
-          const photoBytes = await photoResponse.arrayBuffer();
-          
-          const photoPage = mergedPdf.addPage();
-          const photoImage = await mergedPdf.embedJpg(photoBytes);
-          
-          const { width, height } = photoImage.scale(1);
-          const pageWidth = photoPage.getWidth();
-          const pageHeight = photoPage.getHeight();
-          const scale = Math.min(pageWidth / width, pageHeight / height);
-          
-          photoPage.drawImage(photoImage, {
-            x: 0,
-            y: 0,
-            width: width * scale,
-            height: height * scale,
-          });
-        } catch (error) {
-          console.error('Error processing photo:', error);
-          toast.error('Failed to add photo to PDF');
-        }
-      }
-
-      // Add signature if available
-      if (personalDetails?.signature) {
-        try {
-          console.log('Processing signature document...');
-          const signatureResponse = await fetch(personalDetails.signature);
-          if (!signatureResponse.ok) throw new Error(`Failed to fetch signature: ${signatureResponse.statusText}`);
-          const signatureBytes = await signatureResponse.arrayBuffer();
-          
-          const signaturePage = mergedPdf.addPage();
-          const signatureImage = await mergedPdf.embedJpg(signatureBytes);
-          
-          const { width, height } = signatureImage.scale(1);
-          const pageWidth = signaturePage.getWidth();
-          const pageHeight = signaturePage.getHeight();
-          const scale = Math.min(pageWidth / width, pageHeight / height);
-          
-          signaturePage.drawImage(signatureImage, {
-            x: 0,
-            y: 0,
-            width: width * scale,
-            height: height * scale,
-          });
-        } catch (error) {
-          console.error('Error processing signature:', error);
-          toast.error('Failed to add signature to PDF');
-        }
-      }
-
-      // Add academic documents
-      if (academicDetails?.qualifications) {
-        for (const qual of academicDetails.qualifications) {
-          if (qual.document_url) {
-            try {
-              const docResponse = await fetch(qual.document_url);
-              if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
-              const docBytes = await docResponse.arrayBuffer();
-              
-              const contentType = docResponse.headers.get('content-type');
-              if (contentType === 'application/pdf') {
-                const docPdf = await PDFDocument.load(docBytes);
-                const [docPage] = await mergedPdf.copyPages(docPdf, [0]);
-                mergedPdf.addPage(docPage);
-              } else if (contentType.startsWith('image/')) {
-                const docPage = mergedPdf.addPage();
-                const docImage = await mergedPdf.embedJpg(docBytes);
-                
-                const { width, height } = docImage.scale(1);
-                const pageWidth = docPage.getWidth();
-                const pageHeight = docPage.getHeight();
-                const scale = Math.min(pageWidth / width, pageHeight / height);
-                
-                docPage.drawImage(docImage, {
-                  x: 0,
-                  y: 0,
-                  width: width * scale,
-                  height: height * scale,
-                });
-              }
-            } catch (error) {
-              console.error(`Error processing document for ${qual.standard}:`, error);
-              toast.error(`Failed to add ${qual.standard} document to PDF`);
-            }
-          }
-        }
-      }
-
-      // Save the merged PDF
-      const mergedPdfBytes = await mergedPdf.save();
-      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      setMergedPdfUrl(url);
-      setShowPDF(true);
-      toast.success('PDF generated successfully!');
     } catch (error) {
       console.error('Error in PDF generation process:', error);
       toast.error(`Failed to generate PDF: ${error.message}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDDUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('document', file);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-demand-draft`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          withCredentials: true
+        }
+      );
+
+      if (response.data.success) {
+        setPersonalDetails(prev => ({
+          ...prev,
+          dd_url: response.data.url
+        }));
+        toast.success('Demand draft uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading demand draft:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload demand draft');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -622,15 +706,6 @@ export default function PrintApplication() {
   if (showPDF) {
     return (
       <div className="h-screen">
-        <div className="fixed top-4 right-4 z-50">
-          <Button 
-            onClick={() => window.print()} 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print PDF
-          </Button>
-        </div>
         {mergedPdfUrl ? (
           <iframe
             src={mergedPdfUrl}
@@ -661,6 +736,22 @@ export default function PrintApplication() {
           <Printer className="h-4 w-4" />
           Generate Complete Application
         </Button>
+      </div>
+
+      {/* Important Note */}
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">
+              <span className="font-medium">Important:</span> Print the application form and send the hard copy of the Demand Draft (DD) via post.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow space-y-6">
@@ -832,55 +923,126 @@ export default function PrintApplication() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Documents</h2>
           
-          {/* Personal Documents */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">Personal Documents</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {personalDetails?.photo && (
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600 mb-2">Photo</p>
-                  <a 
-                    href={personalDetails.photo} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View Photo
-                  </a>
-                </div>
-              )}
-              {personalDetails?.signature && (
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600 mb-2">Signature</p>
-                  <a 
-                    href={personalDetails.signature} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View Signature
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Academic Documents */}
           <div>
             <h3 className="text-lg font-medium mb-2">Academic Documents</h3>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-4">
+              {/* Qualification Documents */}
               {academicDetails?.qualifications.map((qual, index) => (
                 qual.document_url && (
-                  <div key={index} className="p-3 bg-gray-50 rounded">
-                    <p className="font-medium mb-2">{qual.standard} - {qual.degree_name}</p>
-                    <iframe
-                      src={qual.document_url}
-                      className="w-full h-[500px] border border-gray-200 rounded"
-                      title={`Document ${index + 1}`}
-                    />
+                  <div key={`qual-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">{qual.standard} - {qual.degree_name}</p>
+                      <a 
+                        href={qual.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={qual.document_url}
+                        className="w-full h-full"
+                        title={`Document ${index + 1}`}
+                      />
+                    </div>
                   </div>
                 )
               ))}
+
+              {/* Experience Documents */}
+              {academicDetails?.experience.map((exp, index) => (
+                exp.document_url && (
+                  <div key={`exp-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">Experience at {exp.organisation}</p>
+                      <a 
+                        href={exp.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={exp.document_url}
+                        className="w-full h-full"
+                        title={`Experience Document ${index + 1}`}
+                      />
+                    </div>
+                  </div>
+                )
+              ))}
+
+              {/* Publication Documents */}
+              {academicDetails?.publications.map((pub, index) => (
+                pub.document_url && (
+                  <div key={`pub-${index}`} className="p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium">{pub.paper_title}</p>
+                      <a 
+                        href={pub.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                      <iframe
+                        src={pub.document_url}
+                        className="w-full h-full"
+                        title={`Publication Document ${index + 1}`}
+                      />
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Documents */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Payment Documents</h3>
+            <div className="p-3 bg-gray-50 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <p className="font-medium">Demand Draft</p>
+                <div className="flex items-center gap-2">
+                  {personalDetails?.dd_url ? (
+                    <a 
+                      href={personalDetails.dd_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline text-sm"
+                    >
+                      View Document
+                    </a>
+                  ) : (
+                    <Input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleDDUpload}
+                      disabled={isUploading}
+                      className="h-9 text-sm"
+                    />
+                  )}
+                </div>
+              </div>
+              {personalDetails?.dd_url && (
+                <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
+                  <iframe
+                    src={personalDetails.dd_url}
+                    className="w-full h-full"
+                    title="Demand Draft Document"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

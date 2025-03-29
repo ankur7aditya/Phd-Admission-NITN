@@ -60,15 +60,23 @@ const validateAddress = (address) => {
 const validateFile = (file, type) => {
   if (!file) return `${type} is required`;
   
-  // Check file size (max 5MB)
-  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+  // Check file size (max 2MB for images, 5MB for documents)
+  const maxSize = type === 'photo' || type === 'signature' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
   if (file.size > maxSize) {
-    return `${type} size should not exceed 5MB`;
+    return `${type} size should not exceed ${maxSize / (1024 * 1024)}MB`;
   }
 
-  // Check file type - only allow PDF
-  if (file.type !== 'application/pdf') {
-    return `${type} must be a PDF file`;
+  // Check file type
+  if (type === 'photo' || type === 'signature') {
+    // Allow only images for photo and signature
+    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+      return `${type} must be an image file (JPEG, PNG, or GIF)`;
+    }
+  } else {
+    // Allow only PDF for other documents
+    if (file.type !== 'application/pdf') {
+      return `${type} must be a PDF file`;
+    }
   }
 
   return '';
@@ -115,13 +123,34 @@ export default function AdmissionForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [sameAddress, setSameAddress] = useState(false);
+  const [isExistingData, setIsExistingData] = useState(false);
 
   useEffect(() => {
-    // Load saved form data from localStorage
-    const savedData = localStorage.getItem('admissionFormData');
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
+    const fetchPersonalDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/personal/get`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+        
+        if (response.data) {
+          setFormData(response.data);
+          setIsExistingData(true);
+        }
+      } catch (error) {
+        console.error('Error fetching personal details:', error);
+        // Only show error if it's not a 404 (not found) error
+        if (error.response?.status !== 404) {
+          toast.error('Failed to fetch personal details');
+        }
+      }
+    };
+
+    fetchPersonalDetails();
   }, []);
 
   // Save form data to localStorage whenever it changes
@@ -228,7 +257,7 @@ export default function AdmissionForm() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/personal/upload-${type}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-${type}`,
         formData,
         {
           headers: {
@@ -304,8 +333,11 @@ export default function AdmissionForm() {
 
     try {
       console.log('Submitting form data:', formData);
-      const response = await axios.post(
-        'http://localhost:5000/api/personal/create',
+      const endpoint = isExistingData ? 'update' : 'create';
+      const method = isExistingData ? 'put' : 'post';
+      
+      const response = await axios[method](
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/${endpoint}`,
         formData,
         {
           headers: {
@@ -314,14 +346,14 @@ export default function AdmissionForm() {
         }
       );
 
-      toast.success('Personal details submitted successfully');
+      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`);
       // Clear form data from localStorage after successful submission
       localStorage.removeItem('admissionFormData');
       // Navigate to academic details form
       navigate('/academic-details');
     } catch (error) {
-      toast.error('Failed to submit personal details');
       console.error('Error submitting form:', error);
+      toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} personal details`);
       if (error.response?.data?.fields) {
         console.error('Missing required fields:', error.response.data.fields);
         toast.error(`Missing required fields: ${error.response.data.fields.join(', ')}`);
@@ -333,7 +365,9 @@ export default function AdmissionForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Personal Details</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {isExistingData ? 'Update Personal Details' : 'Personal Details'}
+      </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-2 gap-4">
@@ -691,56 +725,50 @@ export default function AdmissionForm() {
           </div>
         </div>
 
-        {/* Photo and Signature Upload */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Photo</Label>
-            <div className="mt-2">
-              <Input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileUpload(e, 'photo')}
-                disabled={isUploading}
-              />
-              {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {formData.photo && (
-                <div className="mt-2">
-                  <a
-                    href={formData.photo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View uploaded PDF
-                  </a>
-                </div>
-              )}
-            </div>
+        {/* Photo Upload */}
+        <div className="space-y-2">
+          <Label>Photo (2x2 inches)</Label>
+          <div className="flex items-center gap-4">
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/gif"
+              onChange={(e) => handleFileUpload(e, 'photo')}
+              className="h-9 text-sm"
+            />
+            {formData.photo && (
+              <div className="w-20 h-20 border rounded overflow-hidden">
+                <img
+                  src={formData.photo}
+                  alt="Photo preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
           </div>
-          <div>
-            <Label>Signature</Label>
-            <div className="mt-2">
-              <Input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileUpload(e, 'signature')}
-                disabled={isUploading}
-              />
-              {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {formData.signature && (
-                <div className="mt-2">
-                  <a
-                    href={formData.signature}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View uploaded PDF
-                  </a>
-                </div>
-              )}
-            </div>
+          {errors.photo && <p className="text-sm text-red-500">{errors.photo}</p>}
+        </div>
+
+        {/* Signature Upload */}
+        <div className="space-y-2">
+          <Label>Signature</Label>
+          <div className="flex items-center gap-4">
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/gif"
+              onChange={(e) => handleFileUpload(e, 'signature')}
+              className="h-9 text-sm"
+            />
+            {formData.signature && (
+              <div className="w-40 h-20 border rounded overflow-hidden">
+                <img
+                  src={formData.signature}
+                  alt="Signature preview"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            )}
           </div>
+          {errors.signature && <p className="text-sm text-red-500">{errors.signature}</p>}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>

@@ -1,16 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function NavigationBar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    // Clear all stored data
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    
+    logout();
     toast.success('Logged out successfully');
     navigate('/login');
   };

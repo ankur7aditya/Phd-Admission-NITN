@@ -10,20 +10,32 @@ cloudinary.config({
     api_secret:process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath, fileType = 'image') => {
     try {
-        if(!localFilePath) return null
-        //upload the file on cloudinary
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "raw",
-            format: "pdf",
+        if(!localFilePath) return null;
+
+        // Determine resource type and format based on file type
+        const uploadOptions = {
+            resource_type: fileType === 'pdf' ? 'raw' : 'image',
             delivery_type: "upload",
-            access_mode: "public",
-            transformation: [
-                { flags: "attachment" },
+            access_mode: "public"
+        };
+
+        // Add transformations based on file type
+        if (fileType === 'pdf') {
+            uploadOptions.transformation = [
+                { flags: "attachment" }
+            ];
+        } else {
+            uploadOptions.transformation = [
+                { quality: "auto" },
                 { fetch_format: "auto" }
-            ]
-        })
+            ];
+        }
+
+        //upload the file on cloudinary
+        const response = await cloudinary.uploader.upload(localFilePath, uploadOptions);
+        
         // file has been uploaded successfull
         console.log("file is uploaded on cloudinary ", response.url);
         fs.unlinkSync(localFilePath)
@@ -35,17 +47,17 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-const deleteFromCloudinary=async (imageUrl)=>{
-    try{
+const deleteFromCloudinary = async (imageUrl, resourceType = 'image') => {
+    try {
         if(!imageUrl) return null;
-        const response=await cloudinary.uploader.destroy(imageUrl,{
-            resource_type:"image"
+        const response = await cloudinary.uploader.destroy(imageUrl, {
+            resource_type: resourceType
         })
-        console.log("Cloudinary Deletion Response",response);
+        console.log("Cloudinary Deletion Response", response);
         return response
-    }catch(error){
-        console.error("Error occurred while deleting image from Cloudinary",error.message)
-        throw{success:false,message:error.message,statusCode:500};
+    } catch(error) {
+        console.error("Error occurred while deleting from Cloudinary", error.message)
+        throw {success: false, message: error.message, statusCode: 500};
     }
 }
 

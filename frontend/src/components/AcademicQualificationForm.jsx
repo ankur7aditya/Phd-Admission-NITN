@@ -133,13 +133,34 @@ export default function AcademicQualificationForm() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isExistingData, setIsExistingData] = useState(false);
 
   useEffect(() => {
-    // Load saved form data from localStorage
-    const savedData = localStorage.getItem('academicFormData');
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
+    const fetchAcademicDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/academic/get`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+        
+        if (response.data) {
+          setFormData(response.data);
+          setIsExistingData(true);
+        }
+      } catch (error) {
+        console.error('Error fetching academic details:', error);
+        // Only show error if it's not a 404 (not found) error
+        if (error.response?.status !== 404) {
+          toast.error('Failed to fetch academic details');
+        }
+      }
+    };
+
+    fetchAcademicDetails();
   }, []);
 
   // Save form data to localStorage whenever it changes
@@ -259,7 +280,7 @@ export default function AcademicQualificationForm() {
     formData.append('document', file);
 
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {
@@ -323,7 +344,7 @@ export default function AcademicQualificationForm() {
           // Add exam-specific details based on exam type
           if (exam.exam_type === 'NET') {
             formattedExam.net_details = {
-              type: exam.net_details?.type || 'Without Fellowship', // Default to 'Without Fellowship' if not specified
+              type: exam.net_details?.type || 'Without Fellowship',
               subject: exam.net_details?.subject,
               score: exam.net_details?.score ? parseFloat(exam.net_details.score) : undefined,
               rank: exam.net_details?.rank ? parseInt(exam.net_details.rank) : undefined,
@@ -355,8 +376,11 @@ export default function AcademicQualificationForm() {
 
       console.log('Formatted data before submission:', formattedData);
 
-      const response = await axios.post(
-        'http://localhost:5000/api/academic/create',
+      const endpoint = isExistingData ? 'update' : 'create';
+      const method = isExistingData ? 'put' : 'post';
+      
+      const response = await axios[method](
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/${endpoint}`,
         formattedData,
         {
           headers: {
@@ -368,8 +392,28 @@ export default function AcademicQualificationForm() {
       console.log('Response from server:', response.data);
 
       if (response.data.success) {
-      toast.success('Academic details submitted successfully');
-      navigate('/print-application');
+        // Fetch fresh data immediately after successful update
+        const freshData = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/academic/get`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+        setFormData(freshData.data);
+        
+        toast.success(`Academic details ${isExistingData ? 'updated' : 'submitted'} successfully`, {
+          style: {
+            background: '#10B981',
+            color: '#ffffff',
+          },
+          iconTheme: {
+            primary: '#ffffff',
+            secondary: '#10B981',
+          },
+        });
+        navigate('/print-application');
       } else {
         throw new Error(response.data.message || 'Failed to submit academic details');
       }
@@ -387,7 +431,7 @@ export default function AcademicQualificationForm() {
           .join('\n');
         toast.error(errorMessages);
       } else {
-        toast.error(error.message || 'Failed to submit academic details');
+        toast.error(error.message || `Failed to ${isExistingData ? 'update' : 'submit'} academic details`);
       }
     } finally {
       setIsLoading(false);
@@ -460,7 +504,7 @@ export default function AcademicQualificationForm() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {
@@ -497,7 +541,7 @@ export default function AcademicQualificationForm() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/academic/upload-document',
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
         formData,
         {
           headers: {
@@ -528,7 +572,9 @@ export default function AcademicQualificationForm() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
         <div className="border-b border-gray-200 p-4">
-          <h1 className="text-xl font-semibold text-gray-800">Academic Details</h1>
+          <h1 className="text-xl font-semibold text-gray-800">
+            {isExistingData ? 'Update Academic Details' : 'Academic Details'}
+          </h1>
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
@@ -1036,12 +1082,16 @@ export default function AcademicQualificationForm() {
                         type="number"
                         value={exam.net_details.qualifying_marks}
                         onChange={(e) => handleExamDetailsChange(e, index, 'net_details')}
+                          className={getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`) ? "border-red-500" : ""}
                       />
+                        {getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`)}</p>
+                        )}
                     </div>
                   </>
                 )}
 
-                {/* Other Exam Details */}
+                {/* Other Details */}
                 {exam.exam_type === "Others" && (
                   <>
                     <div>
@@ -1081,7 +1131,11 @@ export default function AcademicQualificationForm() {
                         type="number"
                         value={exam.other_details.qualifying_marks}
                         onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
+                          className={getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) ? "border-red-500" : ""}
                       />
+                        {getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`)}</p>
+                        )}
                     </div>
                   </>
                 )}
@@ -1090,9 +1144,9 @@ export default function AcademicQualificationForm() {
           ))}
         </div>
 
-          {/* Experience Section */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        {/* Experience */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-700">Experience</h2>
               <Button 
                 type="button" 
@@ -1100,138 +1154,146 @@ export default function AcademicQualificationForm() {
                 variant="outline"
                 className="text-sm px-3 py-1"
               >
-                Add Experience
-              </Button>
-            </div>
+              Add Experience
+            </Button>
+          </div>
 
-            {formData.experience.map((exp, index) => (
+          {formData.experience.map((experience, index) => (
               <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Experience Type</Label>
-                    <Select
-                      value={exp.type}
-                      onValueChange={(value) => handleExperienceChange(
-                        { target: { name: 'type', value } },
-                        index
-                      )}
-                    >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                  <Select
+                    value={experience.type}
+                    onValueChange={(value) => handleExperienceChange(
+                      { target: { name: 'type', value } },
+                      index
+                    )}
+                  >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select experience type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Industry">Industry</SelectItem>
-                        <SelectItem value="Academia">Academia</SelectItem>
-                        <SelectItem value="Research">Research</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <SelectValue placeholder="Select experience type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full Time">Full Time</SelectItem>
+                      <SelectItem value="Part Time">Part Time</SelectItem>
+                      <SelectItem value="Self Employed">Self Employed</SelectItem>
+                      <SelectItem value="Freelance">Freelance</SelectItem>
+                      <SelectItem value="Internship">Internship</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div>
-                    <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organization</Label>
-                    <Input
-                      id={`experience-${index}-organisation`}
-                      name="organisation"
-                      value={exp.organisation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                <div>
+                    <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organisation</Label>
+                  <Input
+                    id={`experience-${index}-organisation`}
+                    name="organisation"
+                    value={experience.organisation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div>
+                <div>
                     <Label htmlFor={`experience-${index}-place`} className="text-sm font-medium text-gray-700">Place</Label>
-                    <Input
-                      id={`experience-${index}-place`}
-                      name="place"
-                      value={exp.place}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                  <Input
+                    id={`experience-${index}-place`}
+                    name="place"
+                    value={experience.place}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
-                    <Input
-                      id={`experience-${index}-designation`}
-                      name="designation"
-                      value={exp.designation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                <div>
+                    <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Period From</Label>
+                  <Input
+                    id={`experience-${index}-period_from`}
+                    name="period_from"
+                    type="date"
+                    value={experience.period_from}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Start Date</Label>
-                    <Input
-                      id={`experience-${index}-period_from`}
-                      name="period_from"
-                      type="date"
-                      value={exp.period_from}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                <div>
+                    <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">Period To</Label>
+                  <Input
+                    id={`experience-${index}-period_to`}
+                    name="period_to"
+                    type="date"
+                    value={experience.period_to}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                  />
+                </div>
 
-                  <div>
-                    <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">End Date</Label>
-                    <Input
-                      id={`experience-${index}-period_to`}
-                      name="period_to"
-                      type="date"
-                      value={exp.period_to}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
-
-                  <div>
+                <div>
                     <Label htmlFor={`experience-${index}-monthly_compensation`} className="text-sm font-medium text-gray-700">Monthly Compensation</Label>
-                    <Input
-                      id={`experience-${index}-monthly_compensation`}
-                      name="monthly_compensation"
-                      type="number"
-                      value={exp.monthly_compensation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                  <Input
+                    id={`experience-${index}-monthly_compensation`}
+                    name="monthly_compensation"
+                    type="number"
+                    value={experience.monthly_compensation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div className="col-span-2">
+                <div>
+                    <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
+                  <Input
+                    id={`experience-${index}-designation`}
+                    name="designation"
+                    value={experience.designation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
+
+                <div>
                     <Label htmlFor={`experience-${index}-nature_of_work`} className="text-sm font-medium text-gray-700">Nature of Work</Label>
-                    <Input
-                      id={`experience-${index}-nature_of_work`}
-                      name="nature_of_work"
-                      value={exp.nature_of_work}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
+                  <Input
+                    id={`experience-${index}-nature_of_work`}
+                    name="nature_of_work"
+                    value={experience.nature_of_work}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div className="col-span-2">
-                    <Label className="text-sm font-medium text-gray-700">Experience Certificate</Label>
+                <div className="col-span-2">
+                    <Label className="text-sm font-medium text-gray-700">Experience Certificate Upload</Label>
                     <div className="text-xs text-gray-500 mb-2">
                       Please upload only PDF files (max size: 5MB)
                     </div>
-                    <Input
-                      type="file"
+                  <Input
+                    type="file"
                       accept=".pdf"
-                      onChange={(e) => handleExperienceFileUpload(e, index)}
-                      disabled={isUploading}
-                    />
-                    {exp.experience_certificate_url && (
-                      <div className="mt-2">
-                        <a
-                          href={exp.experience_certificate_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                    onChange={(e) => handleExperienceFileUpload(e, index)}
+                    disabled={isUploading}
+                      className="h-9 text-sm"
+                  />
+                  {experience.experience_certificate_url && (
+                    <div className="mt-2">
+                        <object
+                          data={`${experience.experience_certificate_url}#toolbar=0&navpanes=0`}
+                          type="application/pdf"
+                          className="w-full h-[400px] border border-gray-200 rounded"
                         >
-                          View Certificate
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={experience.experience_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                        </object>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          {/* Publications Section */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        {/* Publications */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-700">Publications</h2>
               <Button 
                 type="button" 
@@ -1239,110 +1301,105 @@ export default function AcademicQualificationForm() {
                 variant="outline"
                 className="text-sm px-3 py-1"
               >
-                Add Publication
-              </Button>
-            </div>
+              Add Publication
+            </Button>
+          </div>
 
-            {formData.publications.map((pub, index) => (
+          {formData.publications.map((publication, index) => (
               <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Publication Type</Label>
-                    <Select
-                      value={pub.type}
-                      onValueChange={(value) => handlePublicationChange(
-                        { target: { name: 'type', value } },
-                        index
-                      )}
-                    >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                  <Select
+                    value={publication.type}
+                    onValueChange={(value) => handlePublicationChange(
+                      { target: { name: 'type', value } },
+                      index
+                    )}
+                  >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select publication type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Journal">Journal</SelectItem>
-                        <SelectItem value="Conference">Conference</SelectItem>
-                        <SelectItem value="Book">Book</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <SelectValue placeholder="Select publication type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Journal Article">Journal Article</SelectItem>
+                      <SelectItem value="Conference Paper">Conference Paper</SelectItem>
+                      <SelectItem value="Book Chapter">Book Chapter</SelectItem>
+                      <SelectItem value="Book">Book</SelectItem>
+                      <SelectItem value="Patent">Patent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div>
-                    <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
-                    <Input
-                      id={`publication-${index}-acceptance_year`}
-                      name="acceptance_year"
-                      type="number"
-                      value={pub.acceptance_year}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
+                <div>
                     <Label htmlFor={`publication-${index}-paper_title`} className="text-sm font-medium text-gray-700">Paper Title</Label>
-                    <Input
-                      id={`publication-${index}-paper_title`}
-                      name="paper_title"
-                      value={pub.paper_title}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                    />
-                  </div>
+                  <Input
+                    id={`publication-${index}-paper_title`}
+                    name="paper_title"
+                    value={publication.paper_title}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div className="col-span-2">
+                <div>
                     <Label htmlFor={`publication-${index}-affiliation`} className="text-sm font-medium text-gray-700">Affiliation</Label>
-                    <Input
-                      id={`publication-${index}-affiliation`}
-                      name="affiliation"
-                      value={pub.affiliation}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                    />
-                  </div>
+                  <Input
+                    id={`publication-${index}-affiliation`}
+                    name="affiliation"
+                    value={publication.affiliation}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    required
+                  />
+                </div>
 
-                  <div className="col-span-2">
-                    <Label className="text-sm font-medium text-gray-700">Publication Document</Label>
+                <div>
+                    <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
+                  <Input
+                    id={`publication-${index}-acceptance_year`}
+                    name="acceptance_year"
+                    type="number"
+                    value={publication.acceptance_year}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    required
+                  />
+                </div>
+
+                <div className="col-span-2">
+                    <Label className="text-sm font-medium text-gray-700">Document Upload</Label>
                     <div className="text-xs text-gray-500 mb-2">
                       Please upload only PDF files (max size: 5MB)
                     </div>
-                    <Input
-                      type="file"
+                  <Input
+                    type="file"
                       accept=".pdf"
-                      onChange={(e) => handlePublicationFileUpload(e, index)}
-                      disabled={isUploading}
-                    />
-                    {pub.document_url && (
-                      <div className="mt-2">
+                    onChange={(e) => handlePublicationFileUpload(e, index)}
+                    disabled={isUploading}
+                      className="h-9 text-sm"
+                  />
+                  {publication.document_url && (
+                    <div className="mt-2">
                         <object
-                          data={`${pub.document_url}#toolbar=0&navpanes=0`}
+                          data={`${publication.document_url}#toolbar=0&navpanes=0`}
                           type="application/pdf"
                           className="w-full h-[400px] border border-gray-200 rounded"
                         >
-                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={pub.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={publication.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
                         </object>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          <div className="pt-6 border-t border-gray-200">
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-              disabled={isLoading}
-            >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            'Submit'
-          )}
-        </Button>
-          </div>
-      </form>
+        <div className="mt-6">
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit'}
+          </Button>
+        </div>
+        </form>
       </div>
     </div>
   );
-} 
+}
