@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const PersonalDetails = require('../models/PersonalDetails');
 const { verifyJWT } = require('../middleware/authMiddleware');
-const { imageUpload } = require('../middleware/multer');
+const { documentUpload } = require('../middleware/multer');
 const { createPersonal, getPersonal, uploadPhoto, uploadSignature } = require('../controllers/personalController');
 
 // Create personal details
@@ -12,9 +12,9 @@ router.post('/create', verifyJWT, createPersonal);
 router.get('/get', verifyJWT, getPersonal);
 
 // Upload photo
-router.post('/upload-photo', verifyJWT, imageUpload.single('photo'), uploadPhoto);
+router.post('/upload-photo', verifyJWT, documentUpload.single('photo'), uploadPhoto);
 
 // Upload signature
-router.post('/upload-signature', verifyJWT, imageUpload.single('signature'), uploadSignature);
+router.post('/upload-signature', verifyJWT, documentUpload.single('signature'), uploadSignature);
 
 module.exports = router;

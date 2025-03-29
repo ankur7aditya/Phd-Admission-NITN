@@ -5,16 +5,14 @@ const { getNextUserId } = require('./Generatnextuser');
 
 const registerUser = async (req, res) => {
     try {
-        const {  email, fullName, password } = req.body;
+        const { email, fullName, password } = req.body;
 
         // Check if user already exists
-        const existingUser = await User.findOne({
-            $or: [{ username }, { email }]
-        });
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             return res.status(409).json({
-                message: "User with email or username already exists"
+                message: "User with this email already exists"
             });
         }
 
@@ -38,9 +36,19 @@ const registerUser = async (req, res) => {
             });
         }
 
+        // Generate access and refresh tokens
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+
+        // Update user's refresh token
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
         return res.status(201).json({
             message: "User registered successfully",
-            user: createdUser
+            user: createdUser,
+            accessToken,
+            refreshToken
         });
     } catch (error) {
         console.error("Registration error:", error);

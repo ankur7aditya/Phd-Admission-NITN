@@ -13,10 +13,33 @@ dotenv.config();
 // Create Express app
 const app = express();
 
+// CORS configuration
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 'Referrer-Policy'],
+    exposedHeaders: ['Content-Disposition'],
+    referrerPolicy: 'strict-origin-when-cross-origin'
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Add headers middleware for PDF files and document uploads
+app.use((req, res, next) => {
+    // Set security headers
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    
+    if (req.path.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+    }
+    next();
+});
 
 // Routes
 app.use('/api/academic', academicRoutes);

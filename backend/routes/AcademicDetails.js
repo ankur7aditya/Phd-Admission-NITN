@@ -10,7 +10,7 @@ router.post("/upload-document", verifyJWT, documentUpload.single("document"), up
 
 // 🔹 Other Academic Routes
 router.post("/create", verifyJWT, createAcademic);
-router.get("/get/:userid", verifyJWT, getAcademic);
-router.put("/update/:userid", verifyJWT, updateAcademic);
+router.get("/get", verifyJWT, getAcademic);
+router.put("/update", verifyJWT, updateAcademic);
 
 module.exports = router;
