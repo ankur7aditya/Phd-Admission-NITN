@@ -88,11 +88,7 @@ const styles = StyleSheet.create({
   },
   documentContainer: {
     marginVertical: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderStyle: 'solid',
-    backgroundColor: '#f9f9f9',
+    alignItems: 'center',
   },
   documentTitle: {
     fontSize: 12,
@@ -103,6 +99,40 @@ const styles = StyleSheet.create({
     width: 300,
     height: 400,
     objectFit: 'contain',
+  },
+  photo: {
+    width: 144, // 2 inches at 72 DPI
+    height: 144, // 2 inches at 72 DPI
+    objectFit: 'cover',
+  },
+  signature: {
+    width: 216, // 3 inches at 72 DPI
+    height: 72, // 1 inch at 72 DPI
+    objectFit: 'contain',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  personalDetails: {
+    flex: 1,
+    marginRight: 20,
+  },
+  photoSignatureContainer: {
+    width: 200,
+    alignItems: 'center',
+  },
+  photoContainer: {
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 2,
+  },
+  signatureContainer: {
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 2,
   },
 });
 
@@ -117,63 +147,89 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
 
       {/* Personal Details Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Details</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>{personalDetails?.first_name} {personalDetails?.last_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Date of Birth</Text>
-          <Text style={styles.value}>{new Date(personalDetails?.dob).toLocaleDateString()}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Gender</Text>
-          <Text style={styles.value}>{personalDetails?.gender}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Nationality</Text>
-          <Text style={styles.value}>{personalDetails?.nationality}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Category</Text>
-          <Text style={styles.value}>{personalDetails?.category}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Religion</Text>
-          <Text style={styles.value}>{personalDetails?.religion}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Father's Name</Text>
-          <Text style={styles.value}>{personalDetails?.father_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Mother's Name</Text>
-          <Text style={styles.value}>{personalDetails?.mother_name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Marital Status</Text>
-          <Text style={styles.value}>{personalDetails?.marital_status}</Text>
-        </View>
-        {personalDetails?.marital_status !== 'Single' && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Spouse Name</Text>
-            <Text style={styles.value}>{personalDetails?.spouse_name}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.personalDetails}>
+            <Text style={styles.sectionTitle}>Personal Details</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Name</Text>
+              <Text style={styles.value}>{personalDetails?.first_name} {personalDetails?.last_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Date of Birth</Text>
+              <Text style={styles.value}>{new Date(personalDetails?.dob).toLocaleDateString()}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Gender</Text>
+              <Text style={styles.value}>{personalDetails?.gender}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Nationality</Text>
+              <Text style={styles.value}>{personalDetails?.nationality}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Category</Text>
+              <Text style={styles.value}>{personalDetails?.category}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Religion</Text>
+              <Text style={styles.value}>{personalDetails?.religion}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Father's Name</Text>
+              <Text style={styles.value}>{personalDetails?.father_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Mother's Name</Text>
+              <Text style={styles.value}>{personalDetails?.mother_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Marital Status</Text>
+              <Text style={styles.value}>{personalDetails?.marital_status}</Text>
+            </View>
+            {personalDetails?.marital_status !== 'Single' && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Spouse Name</Text>
+                <Text style={styles.value}>{personalDetails?.spouse_name}</Text>
+              </View>
+            )}
+            <View style={styles.row}>
+              <Text style={styles.label}>Email</Text>
+              <Text style={styles.value}>{personalDetails?.email}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.value}>{personalDetails?.phone}</Text>
+            </View>
+            {personalDetails?.alternate_phone && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Alternate Phone</Text>
+                <Text style={styles.value}>{personalDetails.alternate_phone}</Text>
+              </View>
+            )}
           </View>
-        )}
-        <View style={styles.row}>
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{personalDetails?.email}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Phone</Text>
-          <Text style={styles.value}>{personalDetails?.phone}</Text>
-        </View>
-        {personalDetails?.alternate_phone && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Alternate Phone</Text>
-            <Text style={styles.value}>{personalDetails.alternate_phone}</Text>
+          
+          {/* Photo and Signature */}
+          <View style={styles.photoSignatureContainer}>
+            {personalDetails?.photo && (
+              <View style={styles.photoContainer}>
+                <Image
+                  src={personalDetails.photo}
+                  style={styles.photo}
+                  cache={false}
+                />
+              </View>
+            )}
+            {personalDetails?.signature && (
+              <View style={styles.signatureContainer}>
+                <Image
+                  src={personalDetails.signature}
+                  style={styles.signature}
+                  cache={false}
+                />
+              </View>
+            )}
           </View>
-        )}
+        </View>
       </View>
 
       {/* Address Section */}
@@ -473,113 +529,114 @@ export default function PrintApplication() {
         applicationPages.forEach(page => mergedPdf.addPage(page));
         console.log(`Added ${applicationPages.length} pages from application form`);
 
-        // Function to merge a document
-        const mergeDocument = async (docUrl, docType) => {
-          try {
-            console.log(`Processing document for ${docType}...`);
-            const docResponse = await fetch(docUrl);
-            if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
-            const docBytes = await docResponse.arrayBuffer();
-            
-            const contentType = docResponse.headers.get('content-type');
-            if (contentType === 'application/pdf') {
-              const docPdf = await PDFDocument.load(docBytes);
-              const pages = await mergedPdf.copyPages(docPdf, docPdf.getPageIndices());
-              pages.forEach(page => mergedPdf.addPage(page));
-              console.log(`Added ${pages.length} pages from ${docType} document`);
-              return true;
-            } else if (contentType.startsWith('image/')) {
-              const docPage = mergedPdf.addPage();
-              let docImage;
-              
-              if (contentType === 'image/jpeg') {
-                docImage = await mergedPdf.embedJpg(docBytes);
-              } else if (contentType === 'image/png') {
-                docImage = await mergedPdf.embedPng(docBytes);
-              } else {
-                throw new Error(`Unsupported image format: ${contentType}`);
-              }
-              
-              const { width, height } = docImage.scale(1);
-              const pageWidth = docPage.getWidth();
-              const pageHeight = docPage.getHeight();
-              
-              // Calculate dimensions for photo and signature
-              let targetWidth, targetHeight;
-              if (docType === 'photo') {
-                // Photo dimensions: 2x2 inches (144x144 points)
-                targetWidth = 144;
-                targetHeight = 144;
-              } else if (docType === 'signature') {
-                // Signature dimensions: 3x1 inches (216x72 points)
-                targetWidth = 216;
-                targetHeight = 72;
-              } else {
-                // For other images, maintain aspect ratio
-                const scale = Math.min(pageWidth / width, pageHeight / height);
-                targetWidth = width * scale;
-                targetHeight = height * scale;
-              }
-              
-              // Center the image on the page
-              const x = (pageWidth - targetWidth) / 2;
-              const y = (pageHeight - targetHeight) / 2;
-              
-              docPage.drawImage(docImage, {
-                x,
-                y,
-                width: targetWidth,
-                height: targetHeight,
-              });
-              console.log(`Added image from ${docType} document`);
-              return true;
-            } else {
-              console.log(`Skipping unsupported document type for ${docType}: ${contentType}`);
-              return false;
-            }
-          } catch (error) {
-            console.error(`Error processing document for ${docType}:`, error);
-            toast.error(`Failed to add ${docType} document to PDF`);
-            return false;
-          }
-        };
-
         // Merge all documents
         const documentsToMerge = [
-          // Personal documents
-          ...(personalDetails?.photo ? [{ url: personalDetails.photo, type: 'photo' }] : []),
-          ...(personalDetails?.signature ? [{ url: personalDetails.signature, type: 'signature' }] : []),
-          ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft' }] : []),
+          // Personal documents - only demand draft
+          ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft', contentType: 'application/pdf' }] : []),
           
           // Qualification documents
           ...(academicDetails?.qualifications?.map(qual => ({
             url: qual.document_url,
-            type: `qualification-${qual.standard}`
+            type: `qualification-${qual.standard}`,
+            contentType: 'application/pdf'
           })) || []),
           
           // Qualifying exam documents
           ...(academicDetails?.qualifying_exams?.map(exam => ({
             url: exam.document_url,
-            type: `exam-${exam.exam_type}`
+            type: `exam-${exam.exam_type}`,
+            contentType: 'application/pdf'
           })) || []),
           
           // Experience documents
           ...(academicDetails?.experience?.map(exp => ({
             url: exp.document_url,
-            type: `experience-${exp.organisation}`
+            type: `experience-${exp.organisation}`,
+            contentType: 'application/pdf'
           })) || []),
           
           // Publication documents
           ...(academicDetails?.publications?.map(pub => ({
             url: pub.document_url,
-            type: `publication-${pub.paper_title}`
+            type: `publication-${pub.paper_title}`,
+            contentType: 'application/pdf'
           })) || [])
         ];
 
         // Process each document sequentially
         for (const doc of documentsToMerge) {
           if (doc.url) {
-            await mergeDocument(doc.url, doc.type);
+            try {
+              console.log(`Processing document for ${doc.type}...`);
+              const docResponse = await fetch(doc.url);
+              if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
+              const docBytes = await docResponse.arrayBuffer();
+              
+              if (doc.contentType === 'application/pdf') {
+                const docPdf = await PDFDocument.load(docBytes);
+                const pages = await mergedPdf.copyPages(docPdf, docPdf.getPageIndices());
+                pages.forEach(page => mergedPdf.addPage(page));
+                console.log(`Added ${pages.length} pages from ${doc.type} document`);
+              } else if (doc.contentType.startsWith('image/')) {
+                const docPage = mergedPdf.addPage();
+                let docImage;
+                
+                try {
+                  if (doc.contentType === 'image/jpeg') {
+                    docImage = await mergedPdf.embedJpg(docBytes);
+                  } else if (doc.contentType === 'image/png') {
+                    docImage = await mergedPdf.embedPng(docBytes);
+                  } else {
+                    throw new Error(`Unsupported image format: ${doc.contentType}`);
+                  }
+                  
+                  const { width, height } = docImage.scale(1);
+                  const pageWidth = docPage.getWidth();
+                  const pageHeight = docPage.getHeight();
+                  
+                  // Calculate dimensions for photo and signature
+                  let targetWidth, targetHeight;
+                  if (doc.type === 'photo') {
+                    // Photo dimensions: 2x2 inches (144x144 points)
+                    targetWidth = 144;
+                    targetHeight = 144;
+                  } else if (doc.type === 'signature') {
+                    // Signature dimensions: 3x1 inches (216x72 points)
+                    targetWidth = 216;
+                    targetHeight = 72;
+                  } else {
+                    // For other images, maintain aspect ratio
+                    const scale = Math.min(pageWidth / width, pageHeight / height);
+                    targetWidth = width * scale;
+                    targetHeight = height * scale;
+                  }
+                  
+                  // Center the image on the page
+                  const x = (pageWidth - targetWidth) / 2;
+                  const y = (pageHeight - targetHeight) / 2;
+                  
+                  docPage.drawImage(docImage, {
+                    x,
+                    y,
+                    width: targetWidth,
+                    height: targetHeight,
+                  });
+                  console.log(`Added image from ${doc.type} document`);
+                } catch (imageError) {
+                  console.error(`Error processing image for ${doc.type}:`, imageError);
+                  // Add a text placeholder if image processing fails
+                  docPage.drawText(`[${doc.type} image could not be processed]`, {
+                    x: 50,
+                    y: pageHeight / 2,
+                    size: 12,
+                    color: rgb(1, 0, 0),
+                  });
+                }
+              }
+            } catch (error) {
+              console.error(`Error processing document for ${doc.type}:`, error);
+              toast.error(`Failed to add ${doc.type} document to PDF`);
+            }
           }
         }
 
@@ -649,15 +706,6 @@ export default function PrintApplication() {
   if (showPDF) {
     return (
       <div className="h-screen">
-        <div className="fixed top-4 right-4 z-50">
-          <Button 
-            onClick={() => window.print()} 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print PDF
-          </Button>
-        </div>
         {mergedPdfUrl ? (
           <iframe
             src={mergedPdfUrl}
@@ -688,6 +736,22 @@ export default function PrintApplication() {
           <Printer className="h-4 w-4" />
           Generate Complete Application
         </Button>
+      </div>
+
+      {/* Important Note */}
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">
+              <span className="font-medium">Important:</span> Print the application form and send the hard copy of the Demand Draft (DD) via post.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow space-y-6">
@@ -859,29 +923,6 @@ export default function PrintApplication() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Documents</h2>
           
-          {/* Personal Documents */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">Personal Documents</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {personalDetails?.photo && (
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600 mb-2">Photo</p>
-                  <div className="aspect-square w-full bg-gray-100 rounded flex items-center justify-center">
-                    <span className="text-gray-400">Photo Preview</span>
-                  </div>
-                </div>
-              )}
-              {personalDetails?.signature && (
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600 mb-2">Signature</p>
-                  <div className="aspect-square w-full bg-gray-100 rounded flex items-center justify-center">
-                    <span className="text-gray-400">Signature Preview</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Academic Documents */}
           <div>
             <h3 className="text-lg font-medium mb-2">Academic Documents</h3>

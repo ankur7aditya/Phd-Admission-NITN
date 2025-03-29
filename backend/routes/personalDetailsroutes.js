@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyJWT } = require('../middleware/authMiddleware');
-const { documentUpload } = require('../middleware/multer');
+const { documentUpload, imageUpload } = require('../middleware/multer');
 const personalController = require('../controllers/personalController');
 
 // Debug log to check imported functions
@@ -20,10 +20,10 @@ router.post('/create', verifyJWT, personalController.createPersonal);
 router.get('/get', verifyJWT, personalController.getPersonal);
 
 // Upload photo
-router.post('/upload-photo', verifyJWT, documentUpload.single('photo'), personalController.uploadPhoto);
+router.post('/upload-photo', verifyJWT, imageUpload.single('photo'), personalController.uploadPhoto);
 
 // Upload signature
-router.post('/upload-signature', verifyJWT, documentUpload.single('signature'), personalController.uploadSignature);
+router.post('/upload-signature', verifyJWT, imageUpload.single('signature'), personalController.uploadSignature);
 
 // Upload demand draft
 router.post('/upload-demand-draft', 

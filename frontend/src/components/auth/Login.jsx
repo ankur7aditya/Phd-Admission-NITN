@@ -5,9 +5,11 @@ import { Input } from '../ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 export function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -30,12 +32,8 @@ export function Login() {
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', formData);
       
-      // Store the tokens in localStorage
-      localStorage.setItem('accessToken', response.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      
-      // Store user info
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Use the login function from AuthContext
+      login(response.data, response.data.user);
       
       toast.success('Login successful!');
       navigate('/admission-form');
