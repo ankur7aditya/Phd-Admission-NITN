@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 export default function Payment() {
   const [isUploading, setIsUploading] = useState(false);
   const [personalDetails, setPersonalDetails] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPersonalDetails();
@@ -54,7 +56,17 @@ export default function Payment() {
           ...prev,
           dd_url: response.data.url
         }));
-        toast.success('Demand draft uploaded successfully');
+        await fetchPersonalDetails();
+        toast.success('Demand draft uploaded successfully', {
+          style: {
+            background: '#10B981',
+            color: '#ffffff',
+          },
+          iconTheme: {
+            primary: '#ffffff',
+            secondary: '#10B981',
+          },
+        });
       }
     } catch (error) {
       console.error('Error uploading demand draft:', error);
@@ -125,6 +137,16 @@ export default function Payment() {
               <li>The demand draft should be clearly visible and readable</li>
               <li>Make sure all details on the demand draft are legible</li>
             </ul>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button
+              onClick={() => navigate('/print-application')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Next: Print Application
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

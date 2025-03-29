@@ -123,13 +123,34 @@ export default function AdmissionForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [sameAddress, setSameAddress] = useState(false);
+  const [isExistingData, setIsExistingData] = useState(false);
 
   useEffect(() => {
-    // Load saved form data from localStorage
-    const savedData = localStorage.getItem('admissionFormData');
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
+    const fetchPersonalDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/personal/get`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+        
+        if (response.data) {
+          setFormData(response.data);
+          setIsExistingData(true);
+        }
+      } catch (error) {
+        console.error('Error fetching personal details:', error);
+        // Only show error if it's not a 404 (not found) error
+        if (error.response?.status !== 404) {
+          toast.error('Failed to fetch personal details');
+        }
+      }
+    };
+
+    fetchPersonalDetails();
   }, []);
 
   // Save form data to localStorage whenever it changes
@@ -312,8 +333,11 @@ export default function AdmissionForm() {
 
     try {
       console.log('Submitting form data:', formData);
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/personal/create`,
+      const endpoint = isExistingData ? 'update' : 'create';
+      const method = isExistingData ? 'put' : 'post';
+      
+      const response = await axios[method](
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/${endpoint}`,
         formData,
         {
           headers: {
@@ -322,14 +346,14 @@ export default function AdmissionForm() {
         }
       );
 
-      toast.success('Personal details submitted successfully');
+      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`);
       // Clear form data from localStorage after successful submission
       localStorage.removeItem('admissionFormData');
       // Navigate to academic details form
       navigate('/academic-details');
     } catch (error) {
-      toast.error('Failed to submit personal details');
       console.error('Error submitting form:', error);
+      toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} personal details`);
       if (error.response?.data?.fields) {
         console.error('Missing required fields:', error.response.data.fields);
         toast.error(`Missing required fields: ${error.response.data.fields.join(', ')}`);
@@ -341,7 +365,9 @@ export default function AdmissionForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Personal Details</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {isExistingData ? 'Update Personal Details' : 'Personal Details'}
+      </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-2 gap-4">
