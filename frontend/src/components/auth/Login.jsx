@@ -30,7 +30,10 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
+        formData
+      );
       
       // Use the login function from AuthContext
       login(response.data, response.data.user);
