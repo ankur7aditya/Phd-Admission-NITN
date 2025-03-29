@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middleware/multer"); 
+const { documentUpload } = require("../middleware/multer"); 
 const { uploadDocument } = require("../controllers/uploadController");
 const { createAcademic, getAcademic, updateAcademic } = require("../controllers/AcademicController");
+const { verifyJWT } = require("../middleware/authMiddleware");
 
 // 🔹 Upload Academic Documents
-router.post("/upload-document", upload.single("document"), uploadDocument);
+router.post("/upload-document", verifyJWT, documentUpload.single("document"), uploadDocument);
 
 // 🔹 Other Academic Routes
-router.post("/add-academic-details", createAcademic);
-router.get("/get-academic-details/:userid", getAcademic);
-router.put("/update-academic/:userid", updateAcademic); // Fixed from update() to put()
+router.post("/create", verifyJWT, createAcademic);
+router.get("/get/:userid", verifyJWT, getAcademic);
+router.put("/update/:userid", verifyJWT, updateAcademic);
 
 module.exports = router;

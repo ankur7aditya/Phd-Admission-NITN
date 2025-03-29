@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const AcademicDetailsSchema = new mongoose.Schema({
   userid: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -90,4 +90,4 @@ const AcademicDetailsSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const AcademicDetails = mongoose.model("AcademicDetails", AcademicDetailsSchema);
-export default AcademicDetails;
+module.exports = AcademicDetails;

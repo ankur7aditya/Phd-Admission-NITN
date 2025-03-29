@@ -1,4 +1,4 @@
-const Counter = require("./Counter");
+const Counter = require("../models/Counter_mongo");
 
 async function getNextUserId() {
   const counter = await Counter.findByIdAndUpdate(
@@ -11,3 +11,5 @@ async function getNextUserId() {
 
   return `NITN/Phd/${paddedNumber}`;
 }
+
+module.exports = { getNextUserId };

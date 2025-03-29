@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const academicRoutes = require("./routes/AcademicDetails");
 const authRoutes = require('./routes/Authroutes');
 const personalRoutes = require('./routes/personalDetailsroutes');
+const Counter = require('./models/Counter_mongo');
 
 // Load environment variables
 dotenv.config();
@@ -28,18 +29,41 @@ app.use((req, res) => {
 });
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+const connectDB = async () => {
+    try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI is not defined');
+        }
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected to MongoDB');
+
+        // Initialize Counter if it doesn't exist
+        const counter = await Counter.findOne({ _id: 'userid_counter' });
+        if (!counter) {
+            await Counter.create({
+                _id: 'userid_counter',
+                sequence_value: 1
+            });
+        }
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
+    }
+};
+
+connectDB();
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+    console.error('Error:', err);
+    res.status(500).json({ 
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

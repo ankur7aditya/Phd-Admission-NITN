@@ -1,31 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const PersonDetails = require('../models/PersonDetails');
-const  authenticateUser  = require('../middleware/authMiddleware');
+const PersonalDetails = require('../models/PersonalDetails');
+const { verifyJWT } = require('../middleware/authMiddleware');
+const { imageUpload } = require('../middleware/multer');
+const { createPersonal, getPersonal, uploadPhoto, uploadSignature } = require('../controllers/personalController');
 
-router.post('/create', authenticateUser, async (req, res) => {
-    try {
-        const personalDetails = new PersonDetails({
-            ...req.body,
-            userId: req.user.id
-        });
-        await personalDetails.save();
-        res.status(201).json(personalDetails);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Create personal details
+router.post('/create', verifyJWT, createPersonal);
 
-router.get('/get', authMiddleware, async (req, res) => {
-    try {
-        const personalDetails = await PersonDetails.findOne({ userId: req.user.id });
-        if (!personalDetails) {
-            return res.status(404).json({ message: 'Personal details not found' });
-        }
-        res.json(personalDetails);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Get personal details
+router.get('/get', verifyJWT, getPersonal);
+
+// Upload photo
+router.post('/upload-photo', verifyJWT, imageUpload.single('photo'), uploadPhoto);
+
+// Upload signature
+router.post('/upload-signature', verifyJWT, imageUpload.single('signature'), uploadSignature);
 
 module.exports = router;
