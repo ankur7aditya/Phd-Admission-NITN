@@ -15,13 +15,15 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    // origin: `${process.env.FRONTEND_URL} || 'http://localhost:3000'`,
+    origin: '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 'Referrer-Policy'],
     exposedHeaders: ['Content-Disposition'],
     referrerPolicy: 'strict-origin-when-cross-origin'
 }));
+console.log(process.env.FRONTEND_URL);
 
 // Middleware
 app.use(express.json());

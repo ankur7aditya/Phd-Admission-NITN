@@ -261,150 +261,74 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         </View>
       </View>
 
-      {/* Academic Details Section */}
+      {/* Academic Details Section - Reformatted */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Academic Details</Text>
-        
-        {/* Qualifications */}
-        <Text style={styles.subsectionTitle}>Qualifications</Text>
+        <Text style={styles.sectionTitle}>Academic Qualifications</Text>
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`qual-${index}`} style={styles.row}>
-            <Text style={styles.label}>Standard</Text>
-            <Text style={styles.value}>{qual.standard}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{qual.standard}</Text>
+            <View style={styles.value}>
+              <Text>{qual.degree_name}</Text>
+              <Text>{qual.university}</Text>
+              <Text>Year: {qual.year_of_completion}</Text>
+              <Text>Marks: {qual.marks_obtained} {qual.marks_type}</Text>
+              {qual.branch && <Text>Branch: {qual.branch}</Text>}
+              <Text>Duration: {qual.program_duration_months} months</Text>
+            </View>
           </View>
         ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`degree-${index}`} style={styles.row}>
-            <Text style={styles.label}>Degree</Text>
-            <Text style={styles.value}>{qual.degree_name}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`univ-${index}`} style={styles.row}>
-            <Text style={styles.label}>University</Text>
-            <Text style={styles.value}>{qual.university}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`year-${index}`} style={styles.row}>
-            <Text style={styles.label}>Year of Completion</Text>
-            <Text style={styles.value}>{qual.year_of_completion}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`marks-${index}`} style={styles.row}>
-            <Text style={styles.label}>Marks</Text>
-            <Text style={styles.value}>{qual.marks_obtained} {qual.marks_type}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`branch-${index}`} style={styles.row}>
-            <Text style={styles.label}>Branch</Text>
-            <Text style={styles.value}>{qual.branch}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`duration-${index}`} style={styles.row}>
-            <Text style={styles.label}>Program Duration</Text>
-            <Text style={styles.value}>{qual.program_duration_months} months</Text>
-          </View>
-        ))}
+      </View>
 
-        {/* Qualifying Exams */}
-        <Text style={styles.subsectionTitle}>Qualifying Exams</Text>
+      {/* Qualifying Exams Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Qualifying Examinations</Text>
         {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={`exam-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Exam Type</Text>
-              <Text style={styles.value}>{exam.exam_type}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{exam.exam_type}</Text>
+            <View style={styles.value}>
+              <Text>Registration No: {exam.registration_no}</Text>
+              <Text>Year: {exam.year_of_qualification}</Text>
+              {exam.exam_type === 'NET' && (
+                <>
+                  <Text>Type: {exam.net_details?.type}</Text>
+                  <Text>Subject: {exam.net_details?.subject}</Text>
+                  <Text>Score: {exam.net_details?.score}</Text>
+                  <Text>Rank: {exam.net_details?.rank}</Text>
+                </>
+              )}
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Registration No</Text>
-              <Text style={styles.value}>{exam.registration_no}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Year of Qualification</Text>
-              <Text style={styles.value}>{exam.year_of_qualification}</Text>
-            </View>
-            
-            {/* NET-specific details */}
-            {exam.exam_type === 'NET' && (
-              <>
-                <View style={styles.row}>
-                  <Text style={styles.label}>NET Type</Text>
-                  <Text style={styles.value}>{exam.net_details?.type}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Subject</Text>
-                  <Text style={styles.value}>{exam.net_details?.subject}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Score</Text>
-                  <Text style={styles.value}>{exam.net_details?.score}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Rank</Text>
-                  <Text style={styles.value}>{exam.net_details?.rank}</Text>
-                </View>
-              </>
-            )}
           </View>
         ))}
+      </View>
 
-        {/* Experience */}
-        <Text style={styles.subsectionTitle}>Experience</Text>
+      {/* Experience Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Professional Experience</Text>
         {academicDetails?.experience.map((exp, index) => (
-          <View key={`exp-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Type</Text>
-              <Text style={styles.value}>{exp.type}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Organization</Text>
-              <Text style={styles.value}>{exp.organisation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Place</Text>
-              <Text style={styles.value}>{exp.place}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Period</Text>
-              <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Designation</Text>
-              <Text style={styles.value}>{exp.designation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Monthly Compensation</Text>
-              <Text style={styles.value}>{exp.monthly_compensation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Nature of Work</Text>
-              <Text style={styles.value}>{exp.nature_of_work}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{exp.type}</Text>
+            <View style={styles.value}>
+              <Text>Organization: {exp.organisation}</Text>
+              <Text>Place: {exp.place}</Text>
+              <Text>Period: {new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
+              <Text>Designation: {exp.designation}</Text>
+              <Text>Monthly Compensation: {exp.monthly_compensation}</Text>
+              <Text>Nature of Work: {exp.nature_of_work}</Text>
             </View>
           </View>
         ))}
+      </View>
 
-        {/* Publications */}
-        <Text style={styles.subsectionTitle}>Publications</Text>
+      {/* Publications Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Publications</Text>
         {academicDetails?.publications.map((pub, index) => (
-          <View key={`pub-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Type</Text>
-              <Text style={styles.value}>{pub.type}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Title</Text>
-              <Text style={styles.value}>{pub.paper_title}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Affiliation</Text>
-              <Text style={styles.value}>{pub.affiliation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Acceptance Year</Text>
-              <Text style={styles.value}>{pub.acceptance_year}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{pub.type}</Text>
+            <View style={styles.value}>
+              <Text>Title: {pub.paper_title}</Text>
+              <Text>Affiliation: {pub.affiliation}</Text>
+              <Text>Year: {pub.acceptance_year}</Text>
             </View>
           </View>
         ))}
@@ -420,9 +344,9 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
       </View>
 
       {/* Documents Section */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>Documents</Text>
-      </View>
+      </View> */}
     </Page>
   </>
 );
@@ -534,33 +458,41 @@ export default function PrintApplication() {
           // Personal documents - only demand draft
           ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft', contentType: 'application/pdf' }] : []),
           
-          // Qualification documents
-          ...(academicDetails?.qualifications?.map(qual => ({
-            url: qual.document_url,
-            type: `qualification-${qual.standard}`,
-            contentType: 'application/pdf'
-          })) || []),
+          // Qualification documents - directly map to array
+          ...(academicDetails?.qualifications?.flatMap(qual => 
+            qual.document_url ? [{
+              url: qual.document_url,
+              type: `qualification-${qual.standard}`,
+              contentType: 'application/pdf'
+            }] : []
+          ) || []),
           
           // Qualifying exam documents
-          ...(academicDetails?.qualifying_exams?.map(exam => ({
-            url: exam.document_url,
-            type: `exam-${exam.exam_type}`,
-            contentType: 'application/pdf'
-          })) || []),
+          ...(academicDetails?.qualifying_exams?.flatMap(exam => 
+            exam.document_url ? [{
+              url: exam.document_url,
+              type: `exam-${exam.exam_type}`,
+              contentType: 'application/pdf'
+            }] : []
+          ) || []),
           
           // Experience documents
-          ...(academicDetails?.experience?.map(exp => ({
-            url: exp.document_url,
-            type: `experience-${exp.organisation}`,
-            contentType: 'application/pdf'
-          })) || []),
+          ...(academicDetails?.experience?.flatMap(exp => 
+            exp.document_url ? [{
+              url: exp.document_url,
+              type: `experience-${exp.organisation}`,
+              contentType: 'application/pdf'
+            }] : []
+          ) || []),
           
           // Publication documents
-          ...(academicDetails?.publications?.map(pub => ({
-            url: pub.document_url,
-            type: `publication-${pub.paper_title}`,
-            contentType: 'application/pdf'
-          })) || [])
+          ...(academicDetails?.publications?.flatMap(pub => 
+            pub.document_url ? [{
+              url: pub.document_url,
+              type: `publication-${pub.paper_title}`,
+              contentType: 'application/pdf'
+            }] : []
+          ) || [])
         ];
 
         // Process each document sequentially
