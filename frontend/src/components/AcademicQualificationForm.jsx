@@ -46,6 +46,13 @@ const validateGATEMarks = (gateDetails) => {
   return '';
 };
 
+// Add this utility function at the top of your file
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toISOString().split('T')[0];
+};
+
 export default function AcademicQualificationForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -272,12 +279,24 @@ export default function AcademicQualificationForm() {
 
   const handleFileUpload = async (e, index) => {
     try {
-    const file = e.target.files[0];
-    if (!file) return;
+      const file = e.target.files[0];
+      if (!file) return;
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('document', file);
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        toast.error('Only PDF files are allowed');
+        return;
+      }
+
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('document', file);
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
@@ -291,18 +310,25 @@ export default function AcademicQualificationForm() {
         }
       );
 
-      if (response.data.url) {
-      setFormData(prev => ({
-        ...prev,
-        qualifications: prev.qualifications.map((qual, i) => 
-            i === index ? { ...qual, document_url: response.data.url } : qual
-        )
-      }));
-      toast.success('Document uploaded successfully');
+      if (response.data?.url) {
+        const secureUrl = response.data.url.replace(/^http:/, 'https:');
+        setFormData(prev => ({
+          ...prev,
+          qualifications: prev.qualifications.map((qual, i) => 
+            i === index ? { ...qual, document_url: secureUrl } : qual
+          )
+        }));
+        toast.success('Document uploaded successfully');
       }
     } catch (error) {
       console.error('Error uploading document:', error);
-      toast.error(error.response?.data?.message || 'Failed to upload document');
+      if (error.response?.status === 413) {
+        toast.error('File size too large');
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('Network error. Please check your connection');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to upload document');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -515,10 +541,11 @@ export default function AcademicQualificationForm() {
         }
       );
 
+      const secureUrl = response.data.url.replace(/^http:/, 'https:');
       setFormData(prev => ({
         ...prev,
         experience: prev.experience.map((exp, i) => 
-          i === index ? { ...exp, experience_certificate_url: response.data.url } : exp
+          i === index ? { ...exp, experience_certificate_url: secureUrl } : exp
         )
       }));
 
@@ -552,10 +579,11 @@ export default function AcademicQualificationForm() {
         }
       );
 
+      const secureUrl = response.data.url.replace(/^http:/, 'https:');
       setFormData(prev => ({
         ...prev,
         publications: prev.publications.map((pub, i) => 
-          i === index ? { ...pub, document_url: response.data.url } : pub
+          i === index ? { ...pub, document_url: secureUrl } : pub
         )
       }));
 
@@ -682,7 +710,7 @@ export default function AcademicQualificationForm() {
                       id={`qualification-${index}-year_of_completion`}
                       name="year_of_completion"
                       type="number"
-                      value={qualification.year_of_completion}
+                      value={formatDateForInput(qualification.year_of_completion)}
                       onChange={(e) => handleQualificationChange(e, index)}
                         className={getFieldError(`qualifications.${index}.year_of_completion`) ? "border-red-500" : ""}
                     />
@@ -1266,7 +1294,7 @@ export default function AcademicQualificationForm() {
                       id={`experience-${index}-period_from`}
                       name="period_from"
                       type="date"
-                      value={experience.period_from}
+                      value={formatDateForInput(experience.period_from)}
                       onChange={(e) => handleExperienceChange(e, index)}
                       required
                     />
@@ -1278,7 +1306,7 @@ export default function AcademicQualificationForm() {
                       id={`experience-${index}-period_to`}
                       name="period_to"
                       type="date"
-                      value={experience.period_to}
+                      value={formatDateForInput(experience.period_to)}
                       onChange={(e) => handleExperienceChange(e, index)}
                     />
                   </div>

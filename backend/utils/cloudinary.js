@@ -1,48 +1,43 @@
-const { v2: cloudinary } = require("cloudinary");
+const cloudinary = require('cloudinary').v2;
 const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
 //Configuration
-cloudinary.config({ 
-    cloud_name:process.env.CLOUDINARY_CLOUD_NAME, 
-    api_key:process.env.CLOUDINARY_API_KEY, 
-    api_secret:process.env.CLOUDINARY_API_SECRET
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true // Force HTTPS
 });
 
-const uploadOnCloudinary = async (localFilePath, fileType = 'image') => {
+const uploadOnCloudinary = async (localFilePath) => {
     try {
         if(!localFilePath) return null;
 
-        // Determine resource type and format based on file type
         const uploadOptions = {
-            resource_type: fileType === 'pdf' ? 'raw' : 'image',
-            delivery_type: "upload",
-            access_mode: "public"
+            resource_type: 'auto',
+            secure: true, // Force HTTPS
+            use_filename: true,
+            unique_filename: true,
+            overwrite: true,
+            folder: 'academic_documents',
+            transformation: [{ quality: "auto", fetch_format: "auto" }]
         };
 
-        // Add transformations based on file type
-        if (fileType === 'pdf') {
-            uploadOptions.transformation = [
-                { flags: "attachment" }
-            ];
-        } else {
-            uploadOptions.transformation = [
-                { quality: "auto" },
-                { fetch_format: "auto" }
-            ];
-        }
-
-        //upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, uploadOptions);
         
-        // file has been uploaded successfull
-        console.log("file is uploaded on cloudinary ", response.url);
-        fs.unlinkSync(localFilePath)
-        return response;
+        // Ensure HTTPS URL
+        const secureUrl = response.url.replace(/^http:/, 'https:');
+        console.log("file is uploaded on cloudinary ", secureUrl);
+        
+        fs.unlinkSync(localFilePath);
+        return { ...response, secure_url: secureUrl };
     } catch (error) {
-        console.error("Error occurred while uploading from Cloudinary:", error.message)
-        fs.unlinkSync(localFilePath) 
+        console.error("Error in Cloudinary upload:", error.message);
+        if (localFilePath && fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+        }
         return null;
     }
 }
