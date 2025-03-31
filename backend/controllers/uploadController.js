@@ -16,7 +16,11 @@ const uploadDocument = async (req, res) => {
       return res.status(400).json({ message: "File size should be less than 5MB" });
     }
 
-    const uploadResult = await uploadOnCloudinary(req.file.path);
+    // Upload to Cloudinary with resource_type: 'raw' for PDFs
+    const uploadResult = await uploadOnCloudinary(req.file.path, {
+      resource_type: 'raw',
+      folder: 'academic_documents'
+    });
     
     if (!uploadResult) {
       return res.status(500).json({ message: "Failed to upload file" });
@@ -31,6 +35,7 @@ const uploadDocument = async (req, res) => {
       : process.env.FRONTEND_URL);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
 
     res.status(200).json({
       message: "Document uploaded successfully",

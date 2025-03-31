@@ -1,5 +1,6 @@
 const PersonalDetails = require('../models/PersonalDetails');
 const { uploadOnCloudinary } = require('../utils/cloudinary');
+const fs = require('fs');
 
 const createPersonal = async (req, res) => {
     try {
@@ -75,20 +76,36 @@ const uploadPhoto = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const response = await uploadOnCloudinary(req.file.path, 'image');
+        const response = await uploadOnCloudinary(req.file.path, {
+            resource_type: 'image',
+            folder: 'personal_documents'
+        });
+        
         if (!response) {
             return res.status(500).json({ message: 'Failed to upload photo' });
         }
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
             { userid: req.user._id },
-            { photo_url: response.url },
+            { photo: response.secure_url },
             { new: true }
         );
 
-        return res.status(200).json(personalDetails);
+        // Clean up the temporary file
+        fs.unlinkSync(req.file.path);
+
+        return res.status(200).json({
+            message: 'Photo uploaded successfully',
+            photo: response.secure_url
+        });
     } catch (error) {
         console.error('Error uploading photo:', error);
+        
+        // Clean up temporary file if it exists
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        
         return res.status(500).json({ message: 'Error uploading photo' });
     }
 };
@@ -99,20 +116,36 @@ const uploadSignature = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const response = await uploadOnCloudinary(req.file.path, 'image');
+        const response = await uploadOnCloudinary(req.file.path, {
+            resource_type: 'image',
+            folder: 'personal_documents'
+        });
+        
         if (!response) {
             return res.status(500).json({ message: 'Failed to upload signature' });
         }
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
             { userid: req.user._id },
-            { signature_url: response.url },
+            { signature: response.secure_url },
             { new: true }
         );
 
-        return res.status(200).json(personalDetails);
+        // Clean up the temporary file
+        fs.unlinkSync(req.file.path);
+
+        return res.status(200).json({
+            message: 'Signature uploaded successfully',
+            signature: response.secure_url
+        });
     } catch (error) {
         console.error('Error uploading signature:', error);
+        
+        // Clean up temporary file if it exists
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        
         return res.status(500).json({ message: 'Error uploading signature' });
     }
 };
@@ -123,7 +156,12 @@ const uploadDemandDraft = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const response = await uploadOnCloudinary(req.file.path, 'pdf');
+        // Upload to Cloudinary with resource_type: 'raw' for PDFs
+        const response = await uploadOnCloudinary(req.file.path, {
+            resource_type: 'raw',
+            folder: 'academic_documents'
+        });
+        
         if (!response) {
             return res.status(500).json({ message: 'Failed to upload demand draft' });
         }

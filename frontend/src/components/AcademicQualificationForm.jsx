@@ -9,12 +9,93 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 
 // Add validation functions at the top of the file
+const validateField = (field, value, context = {}) => {
+  switch (field) {
+    case 'standard':
+      if (!value) return 'Standard is required';
+      if (!['10th', '12th', 'UG', 'PG', 'PhD'].includes(value)) {
+        return 'Invalid standard';
+      }
+      break;
+    case 'degree_name':
+      if (!value) return 'Degree name is required';
+      break;
+    case 'university':
+      if (!value) return 'University/Board is required';
+      break;
+    case 'year_of_completion':
+      return validateYear(value);
+    case 'marks_type':
+      if (!value) return 'Marks type is required';
+      if (!['Percentage', 'CGPA'].includes(value)) {
+        return 'Invalid marks type';
+      }
+      break;
+    case 'marks_obtained':
+      return validateMarks(value, context.max_cgpa || 100);
+    case 'branch':
+      if (!value) return 'Branch/Specialization is required';
+      break;
+    case 'program_duration_months':
+      if (!value) return 'Program duration is required';
+      if (parseInt(value) < 0) return 'Duration cannot be negative';
+      break;
+    case 'exam_type':
+      if (!value) return 'Exam type is required';
+      if (!['CAT', 'GATE', 'GMAT', 'NET', 'Others'].includes(value)) {
+        return 'Invalid exam type';
+      }
+      break;
+    case 'registration_no':
+      if (!value) return 'Registration number is required';
+      break;
+    case 'year_of_qualification':
+      return validateYear(value);
+    case 'type':
+      if (!value) return 'Type is required';
+      if (context.type === 'experience' && !['Industry', 'Academia', 'Research'].includes(value)) {
+        return 'Invalid experience type';
+      }
+      if (context.type === 'publication' && !['Journal', 'Conference', 'Book'].includes(value)) {
+        return 'Invalid publication type';
+      }
+      break;
+    case 'organisation':
+      if (!value) return 'Organisation is required';
+      break;
+    case 'place':
+      if (!value) return 'Place is required';
+      break;
+    case 'period_from':
+      if (!value) return 'Period from is required';
+      break;
+    case 'monthly_compensation':
+      if (!value) return 'Monthly compensation is required';
+      if (parseFloat(value) < 0) return 'Compensation cannot be negative';
+      break;
+    case 'designation':
+      if (!value) return 'Designation is required';
+      break;
+    case 'nature_of_work':
+      if (!value) return 'Nature of work is required';
+      break;
+    case 'paper_title':
+      if (!value) return 'Paper title is required';
+      break;
+    case 'affiliation':
+      if (!value) return 'Affiliation is required';
+      break;
+    case 'acceptance_year':
+      return validateYear(value);
+  }
+  return '';
+};
+
 const validateYear = (year) => {
   if (!year) return 'Year is required';
   const currentYear = new Date().getFullYear();
-  if (parseInt(year) > currentYear) {
-    return 'Year cannot be in the future';
-  }
+  if (parseInt(year) < 1900) return 'Invalid year';
+  if (parseInt(year) > currentYear) return 'Year cannot be in the future';
   return '';
 };
 
@@ -28,8 +109,11 @@ const validateMarks = (marks, maxMarks) => {
 };
 
 const validateNETType = (examType, netDetails) => {
-  if (examType === 'NET' && !netDetails.type) {
+  if (examType === 'NET' && !netDetails?.type) {
     return 'NET type is required';
+  }
+  if (netDetails?.type && !['With Fellowship', 'Without Fellowship'].includes(netDetails.type)) {
+    return 'Invalid NET type';
   }
   return '';
 };
@@ -37,11 +121,53 @@ const validateNETType = (examType, netDetails) => {
 const validateGATEMarks = (gateDetails) => {
   if (!gateDetails) return '';
   
-  const marksOutOf100Error = validateMarks(gateDetails.marks_out_of_100, 100);
-  if (marksOutOf100Error) return marksOutOf100Error;
+  if (gateDetails.marks_out_of_100 !== undefined) {
+    const marksError = validateMarks(gateDetails.marks_out_of_100, 100);
+    if (marksError) return marksError;
+  }
 
-  const qualifyingMarksError = validateMarks(gateDetails.qualifying_marks, 100);
-  if (qualifyingMarksError) return qualifyingMarksError;
+  if (gateDetails.qualifying_marks !== undefined) {
+    const marksError = validateMarks(gateDetails.qualifying_marks, 100);
+    if (marksError) return marksError;
+  }
+
+  if (gateDetails.gate_rank !== undefined && gateDetails.gate_rank < 1) {
+    return 'Rank must be at least 1';
+  }
+
+  return '';
+};
+
+const validateCATMarks = (catDetails) => {
+  if (!catDetails) return '';
+  
+  const fields = [
+    'total_percentile', 'quant_percentile', 'di_lr_percentile', 'verbal_percentile'
+  ];
+  
+  for (const field of fields) {
+    if (catDetails[field] !== undefined) {
+      const marksError = validateMarks(catDetails[field], 100);
+      if (marksError) return marksError;
+    }
+  }
+
+  return '';
+};
+
+const validateGMATMarks = (gmatDetails) => {
+  if (!gmatDetails) return '';
+  
+  const fields = [
+    'total_score', 'verbal_score', 'quantitative_score',
+    'analytical_writing_score', 'integrated_reasoning_score'
+  ];
+  
+  for (const field of fields) {
+    if (gmatDetails[field] !== undefined && gmatDetails[field] < 0) {
+      return `${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} cannot be negative`;
+    }
+  }
 
   return '';
 };
@@ -58,23 +184,23 @@ export default function AcademicQualificationForm() {
   const [formData, setFormData] = useState({
     qualifications: [
       {
-        standard: "",
-        degree_name: "",
-        university: "",
-        year_of_completion: "",
-        marks_type: "",
-        marks_obtained: "",
+        standard: "UG",
+        degree_name: "B.Tech",
+        university: "National Institute of Technology",
+        year_of_completion: new Date().getFullYear(),
+        marks_type: "CGPA",
+        marks_obtained: "8.5",
         max_cgpa: 10,
-        branch: "",
-        program_duration_months: "",
+        branch: "Computer Science",
+        program_duration_months: "48",
         document_url: "",
       }
     ],
     qualifying_exams: [
       {
-        exam_type: "",
-        registration_no: "",
-        year_of_qualification: "",
+        exam_type: "GATE",
+        registration_no: "GATE2024XXXXX",
+        year_of_qualification: new Date().getFullYear(),
         cat_details: {
           total_score: "",
           total_percentile: "",
@@ -86,11 +212,11 @@ export default function AcademicQualificationForm() {
           verbal_percentile: "",
         },
         gate_details: {
-          discipline: "",
-          gate_score: "",
-          gate_rank: "",
-          marks_out_of_100: "",
-          qualifying_marks: "",
+          discipline: "Computer Science",
+          gate_score: "750",
+          gate_rank: "1000",
+          marks_out_of_100: "85",
+          qualifying_marks: "25",
         },
         gmat_details: {
           total_score: "",
@@ -100,10 +226,7 @@ export default function AcademicQualificationForm() {
           ir_score: "",
         },
         net_details: {
-          subject: "",
-          score: "",
-          rank: "",
-          qualifying_marks: "",
+          type: "Without Fellowship"
         },
         other_details: {
           exam_name: "",
@@ -115,23 +238,23 @@ export default function AcademicQualificationForm() {
     ],
     experience: [
       {
-        type: "",
-        organisation: "",
-        place: "",
-        period_from: "",
+        type: "Industry",
+        organisation: "Tech Company",
+        place: "Bangalore",
+        period_from: new Date().toISOString().split('T')[0],
         period_to: "",
-        monthly_compensation: "",
-        designation: "",
-        nature_of_work: "",
+        monthly_compensation: "50000",
+        designation: "Software Engineer",
+        nature_of_work: "Full Stack Development",
         experience_certificate_url: ""
       }
     ],
     publications: [
       {
-        type: "",
-        paper_title: "",
-        affiliation: "",
-        acceptance_year: "",
+        type: "Journal",
+        paper_title: "Sample Research Paper",
+        affiliation: "National Institute of Technology",
+        acceptance_year: new Date().getFullYear(),
         document_url: ""
       }
     ]
@@ -186,15 +309,90 @@ export default function AcademicQualificationForm() {
   };
 
   const handleQualificationChange = (e, index) => {
+    const { name, value } = e.target;
+    let error = '';
+
+    // Validate field based on name
+    switch (name) {
+      case 'year_of_completion':
+        error = validateYear(value);
+        break;
+      case 'marks_obtained':
+        error = validateMarks(value, formData.qualifications[index].max_cgpa || 100);
+        break;
+      case 'program_duration_months':
+        if (!value) error = 'Program duration is required';
+        else if (parseInt(value) < 0) error = 'Duration cannot be negative';
+        break;
+      default:
+        if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
+    }
+
+    // Update errors state
+    setErrors(prev => ({
+      ...prev,
+      [`qualifications.${index}.${name}`]: error
+    }));
+
+    // Update form data
     handleChange(e, index, 'qualifications');
   };
 
   const handleExamChange = (e, index) => {
+    const { name, value } = e.target;
+    let error = '';
+
+    // Validate field based on name
+    switch (name) {
+      case 'year_of_qualification':
+        error = validateYear(value);
+        break;
+      case 'registration_no':
+        if (!value) error = 'Registration number is required';
+        break;
+      default:
+        if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
+    }
+
+    // Update errors state
+    setErrors(prev => ({
+      ...prev,
+      [`qualifying_exams.${index}.${name}`]: error
+    }));
+
+    // Update form data
     handleChange(e, index, 'qualifying_exams');
   };
 
   const handleExamDetailsChange = (e, index, examType) => {
     const { name, value } = e.target;
+    let error = '';
+
+    // Validate field based on exam type and field name
+    switch (examType) {
+      case 'net_details':
+        error = validateNETType(formData.qualifying_exams[index].exam_type, { ...formData.qualifying_exams[index].net_details, [name]: value });
+        break;
+      case 'gate_details':
+        error = validateGATEMarks({ ...formData.qualifying_exams[index].gate_details, [name]: value });
+        break;
+      case 'cat_details':
+        error = validateCATMarks({ ...formData.qualifying_exams[index].cat_details, [name]: value });
+        break;
+      case 'gmat_details':
+        error = validateGMATMarks({ ...formData.qualifying_exams[index].gmat_details, [name]: value });
+        break;
+      default:
+        if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
+    }
+
+    // Update errors state
+    setErrors(prev => ({
+      ...prev,
+      [`qualifying_exams.${index}.${examType}.${name}`]: error
+    }));
+
+    // Update form data
     setFormData(prev => ({
       ...prev,
       qualifying_exams: prev.qualifying_exams.map((exam, i) => 
@@ -282,21 +480,23 @@ export default function AcademicQualificationForm() {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB');
-        return;
-      }
-
       // Validate file type
       if (file.type !== 'application/pdf') {
         toast.error('Only PDF files are allowed');
         return;
       }
 
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
       setIsUploading(true);
       const formData = new FormData();
       formData.append('document', file);
+      formData.append('documentType', 'qualification');
+      formData.append('index', index);
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
@@ -349,6 +549,101 @@ export default function AcademicQualificationForm() {
     setIsLoading(true);
 
     try {
+      // Validate all fields before submission
+      const newErrors = {};
+      let isValid = true;
+
+      // Validate qualifications
+      formData.qualifications.forEach((qual, index) => {
+        Object.keys(qual).forEach(field => {
+          if (field !== 'document_url') { // Skip document_url validation as it's optional
+            const error = validateField(field, qual[field], qual);
+            if (error) {
+              newErrors[`qualifications.${index}.${field}`] = error;
+              isValid = false;
+            }
+          }
+        });
+      });
+
+      // Validate qualifying exams
+      formData.qualifying_exams.forEach((exam, index) => {
+        // Validate basic exam fields
+        Object.keys(exam).forEach(field => {
+          if (field !== 'cat_details' && field !== 'gate_details' && field !== 'gmat_details' && field !== 'net_details' && field !== 'other_details' && field !== 'exam_certificate_url') {
+            const error = validateField(field, exam[field]);
+            if (error) {
+              newErrors[`qualifying_exams.${index}.${field}`] = error;
+              isValid = false;
+            }
+          }
+        });
+
+        // Validate exam-specific details
+        if (exam.exam_type === 'NET') {
+          const netError = validateNETType(exam.exam_type, exam.net_details);
+          if (netError) {
+            newErrors[`qualifying_exams.${index}.net_details.type`] = netError;
+            isValid = false;
+          }
+        } else if (exam.exam_type === 'GATE') {
+          const gateError = validateGATEMarks(exam.gate_details);
+          if (gateError) {
+            newErrors[`qualifying_exams.${index}.gate_details`] = gateError;
+            isValid = false;
+          }
+        } else if (exam.exam_type === 'CAT') {
+          const catError = validateCATMarks(exam.cat_details);
+          if (catError) {
+            newErrors[`qualifying_exams.${index}.cat_details`] = catError;
+            isValid = false;
+          }
+        } else if (exam.exam_type === 'GMAT') {
+          const gmatError = validateGMATMarks(exam.gmat_details);
+          if (gmatError) {
+            newErrors[`qualifying_exams.${index}.gmat_details`] = gmatError;
+            isValid = false;
+          }
+        }
+      });
+
+      // Validate experience
+      formData.experience.forEach((exp, index) => {
+        Object.keys(exp).forEach(field => {
+          if (field !== 'experience_certificate_url') { // Skip certificate URL validation
+            const error = validateField(field, exp[field], { type: 'experience' });
+            if (error) {
+              newErrors[`experience.${index}.${field}`] = error;
+              isValid = false;
+            }
+          }
+        });
+      });
+
+      // Validate publications
+      formData.publications.forEach((pub, index) => {
+        Object.keys(pub).forEach(field => {
+          if (field !== 'document_url') { // Skip document URL validation
+            const error = validateField(field, pub[field], { type: 'publication' });
+            if (error) {
+              newErrors[`publications.${index}.${field}`] = error;
+              isValid = false;
+            }
+          }
+        });
+      });
+
+      if (!isValid) {
+        setErrors(newErrors);
+        // Show specific validation errors
+        const errorMessages = Object.entries(newErrors)
+          .map(([field, error]) => `${field}: ${error}`)
+          .join('\n');
+        toast.error(errorMessages);
+        return;
+      }
+
+      // Rest of the submission code...
       console.log('Starting form submission...');
       console.log('Original form data:', formData);
 
@@ -370,11 +665,7 @@ export default function AcademicQualificationForm() {
           // Add exam-specific details based on exam type
           if (exam.exam_type === 'NET') {
             formattedExam.net_details = {
-              type: exam.net_details?.type || 'Without Fellowship',
-              subject: exam.net_details?.subject,
-              score: exam.net_details?.score ? parseFloat(exam.net_details.score) : undefined,
-              rank: exam.net_details?.rank ? parseInt(exam.net_details.rank) : undefined,
-              qualifying_marks: exam.net_details?.qualifying_marks ? parseFloat(exam.net_details.qualifying_marks) : undefined
+              type: exam.net_details?.type || 'Without Fellowship'
             };
           } else if (exam.exam_type === 'CAT') {
             formattedExam.cat_details = exam.cat_details;
@@ -524,9 +815,23 @@ export default function AcademicQualificationForm() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed for experience certificates');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('document', file);
+    formData.append('documentType', 'experience');
+    formData.append('index', index);
 
     try {
       const response = await axios.post(
@@ -562,9 +867,23 @@ export default function AcademicQualificationForm() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed for publication documents');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('document', file);
+    formData.append('documentType', 'publication');
+    formData.append('index', index);
 
     try {
       const response = await axios.post(
@@ -622,6 +941,58 @@ export default function AcademicQualificationForm() {
       ...prev,
       publications: prev.publications.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleExamCertificateUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed for exam certificates');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('documentType', 'exam');
+    formData.append('index', index);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/upload-document`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          withCredentials: true
+        }
+      );
+
+      const secureUrl = response.data.url.replace(/^http:/, 'https:');
+      setFormData(prev => ({
+        ...prev,
+        qualifying_exams: prev.qualifying_exams.map((exam, i) => 
+          i === index ? { ...exam, exam_certificate_url: secureUrl } : exam
+        )
+      }));
+
+      toast.success('Exam certificate uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload exam certificate');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -710,9 +1081,11 @@ export default function AcademicQualificationForm() {
                       id={`qualification-${index}-year_of_completion`}
                       name="year_of_completion"
                       type="number"
-                      value={formatDateForInput(qualification.year_of_completion)}
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      value={qualification.year_of_completion}
                       onChange={(e) => handleQualificationChange(e, index)}
-                        className={getFieldError(`qualifications.${index}.year_of_completion`) ? "border-red-500" : ""}
+                      className={getFieldError(`qualifications.${index}.year_of_completion`) ? "border-red-500" : ""}
                     />
                       {getFieldError(`qualifications.${index}.year_of_completion`) && (
                         <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifications.${index}.year_of_completion`)}</p>
@@ -1045,52 +1418,56 @@ export default function AcademicQualificationForm() {
                   {exam.exam_type === "GMAT" && (
                     <>
                       <div>
-                          <Label htmlFor={`exam-${index}-gmat-total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat_details.total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
                         <Input
-                          id={`exam-${index}-gmat-total_score`}
+                          id={`exam-${index}-gmat_details.total_score`}
                           name="total_score"
                           type="number"
-                          value={exam.gmat_details.total_score}
+                          value={exam.gmat_details?.total_score || ''}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
                         />
                       </div>
+
                       <div>
-                          <Label htmlFor={`exam-${index}-gmat-quant_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat_details.verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
                         <Input
-                          id={`exam-${index}-gmat-quant_score`}
-                          name="quant_score"
-                          type="number"
-                          value={exam.gmat_details.quant_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gmat-verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-verbal_score`}
+                          id={`exam-${index}-gmat_details.verbal_score`}
                           name="verbal_score"
                           type="number"
-                          value={exam.gmat_details.verbal_score}
+                          value={exam.gmat_details?.verbal_score || ''}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
                         />
                       </div>
+
                       <div>
-                          <Label htmlFor={`exam-${index}-gmat-awa_score`} className="text-sm font-medium text-gray-700">AWA Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat_details.quantitative_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
                         <Input
-                          id={`exam-${index}-gmat-awa_score`}
-                          name="awa_score"
+                          id={`exam-${index}-gmat_details.quantitative_score`}
+                          name="quantitative_score"
                           type="number"
-                          value={exam.gmat_details.awa_score}
+                          value={exam.gmat_details?.quantitative_score || ''}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
                         />
                       </div>
+
                       <div>
-                          <Label htmlFor={`exam-${index}-gmat-ir_score`} className="text-sm font-medium text-gray-700">IR Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat_details.analytical_writing_score`} className="text-sm font-medium text-gray-700">Analytical Writing Score</Label>
                         <Input
-                          id={`exam-${index}-gmat-ir_score`}
-                          name="ir_score"
+                          id={`exam-${index}-gmat_details.analytical_writing_score`}
+                          name="analytical_writing_score"
                           type="number"
-                          value={exam.gmat_details.ir_score}
+                          value={exam.gmat_details?.analytical_writing_score || ''}
+                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`exam-${index}-gmat_details.integrated_reasoning_score`} className="text-sm font-medium text-gray-700">Integrated Reasoning Score</Label>
+                        <Input
+                          id={`exam-${index}-gmat_details.integrated_reasoning_score`}
+                          name="integrated_reasoning_score"
+                          type="number"
+                          value={exam.gmat_details?.integrated_reasoning_score || ''}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
                         />
                       </div>
@@ -1099,70 +1476,21 @@ export default function AcademicQualificationForm() {
 
                   {/* NET Details */}
                   {exam.exam_type === "NET" && (
-                    <>
-                      <div>
-                          <Label htmlFor={`exam-${index}-net-type`} className="text-sm font-medium text-gray-700">NET Type</Label>
-                          <Select
-                            value={exam.net_details.type}
-                            onValueChange={(value) => handleExamDetailsChange(
-                              { target: { name: 'type', value } },
-                              index,
-                              'net_details'
-                            )}
-                          >
-                            <SelectTrigger className="h-9 text-sm">
-                              <SelectValue placeholder="Select NET type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="With Fellowship">With Fellowship</SelectItem>
-                              <SelectItem value="Without Fellowship">Without Fellowship</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor={`exam-${index}-net-subject`} className="text-sm font-medium text-gray-700">Subject</Label>
-                        <Input
-                          id={`exam-${index}-net-subject`}
-                          name="subject"
-                          value={exam.net_details.subject}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'net_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-net-score`} className="text-sm font-medium text-gray-700">Score</Label>
-                        <Input
-                          id={`exam-${index}-net-score`}
-                          name="score"
-                          type="number"
-                          value={exam.net_details.score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'net_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-net-rank`} className="text-sm font-medium text-gray-700">Rank</Label>
-                        <Input
-                          id={`exam-${index}-net-rank`}
-                          name="rank"
-                          type="number"
-                          value={exam.net_details.rank}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'net_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-net-qualifying_marks`} className="text-sm font-medium text-gray-700">Qualifying Marks</Label>
-                        <Input
-                          id={`exam-${index}-net-qualifying_marks`}
-                          name="qualifying_marks"
-                          type="number"
-                          value={exam.net_details.qualifying_marks}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'net_details')}
-                            className={getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`) ? "border-red-500" : ""}
-                        />
-                          {getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`) && (
-                            <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.net_details.qualifying_marks`)}</p>
-                          )}
-                      </div>
-                    </>
+                    <div>
+                      <Label htmlFor={`exam-${index}-net_details.type`} className="text-sm font-medium text-gray-700">NET Type</Label>
+                      <Select
+                        value={exam.net_details?.type || ''}
+                        onValueChange={(value) => handleExamDetailsChange({ target: { name: 'type', value } }, index, 'net_details')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select NET type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="With Fellowship">With Fellowship</SelectItem>
+                          <SelectItem value="Without Fellowship">Without Fellowship</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
                   {/* Other Details */}
@@ -1213,6 +1541,32 @@ export default function AcademicQualificationForm() {
                       </div>
                     </>
                   )}
+
+                  {/* Exam Certificate Upload */}
+                  <div className="col-span-2">
+                    <Label className="text-sm font-medium text-gray-700">Exam Certificate Upload</Label>
+                    <div className="text-xs text-gray-500 mb-2">
+                      Please upload only PDF files (max size: 5MB)
+                    </div>
+                    <Input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleExamCertificateUpload(e, index)}
+                      disabled={isUploading}
+                      className="h-9 text-sm"
+                    />
+                    {exam.exam_certificate_url && (
+                      <div className="mt-2">
+                        <object
+                          data={`${exam.exam_certificate_url}#toolbar=0&navpanes=0`}
+                          type="application/pdf"
+                          className="w-full h-[400px] border border-gray-200 rounded"
+                        >
+                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={exam.exam_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                        </object>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -1254,14 +1608,12 @@ export default function AcademicQualificationForm() {
                       )}
                     >
                         <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select experience type" />
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Full Time">Full Time</SelectItem>
-                        <SelectItem value="Part Time">Part Time</SelectItem>
-                        <SelectItem value="Self Employed">Self Employed</SelectItem>
-                        <SelectItem value="Freelance">Freelance</SelectItem>
-                        <SelectItem value="Internship">Internship</SelectItem>
+                        <SelectItem value="Industry">Industry</SelectItem>
+                        <SelectItem value="Academia">Academia</SelectItem>
+                        <SelectItem value="Research">Research</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1410,14 +1762,12 @@ export default function AcademicQualificationForm() {
                       )}
                     >
                         <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select publication type" />
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Journal Article">Journal Article</SelectItem>
-                        <SelectItem value="Conference Paper">Conference Paper</SelectItem>
-                        <SelectItem value="Book Chapter">Book Chapter</SelectItem>
+                        <SelectItem value="Journal">Journal</SelectItem>
+                        <SelectItem value="Conference">Conference</SelectItem>
                         <SelectItem value="Book">Book</SelectItem>
-                        <SelectItem value="Patent">Patent</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

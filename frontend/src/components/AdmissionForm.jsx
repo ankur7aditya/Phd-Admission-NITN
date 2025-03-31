@@ -244,40 +244,43 @@ export default function AdmissionForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file before upload
-    const fileError = validateFile(file, type);
-    if (fileError) {
-      toast.error(fileError);
+    // Validate file
+    const error = validateFile(file, type);
+    if (error) {
+      setErrors(prev => ({ ...prev, [type]: error }));
       return;
     }
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append(type, file);
-
     try {
+      const formData = new FormData();
+      formData.append(type, file);
+
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-${type}`,
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
         }
       );
 
-      setFormData(prev => ({
-        ...prev,
-        [type]: response.data.url
-      }));
-
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+      if (response.data[type]) {
+        setFormData(prev => ({
+          ...prev,
+          [type]: response.data[type]
+        }));
+        setErrors(prev => ({ ...prev, [type]: '' }));
+        toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+      }
     } catch (error) {
-      toast.error(`Failed to upload ${type}`);
       console.error(`Error uploading ${type}:`, error);
-    } finally {
-      setIsUploading(false);
+      setErrors(prev => ({
+        ...prev,
+        [type]: error.response?.data?.message || `Error uploading ${type}`
+      }));
+      toast.error(error.response?.data?.message || `Error uploading ${type}`);
     }
   };
 

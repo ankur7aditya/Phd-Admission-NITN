@@ -165,10 +165,34 @@ const uploadAcademicDocument = async (req, res) => {
       return res.status(500).json({ message: "Failed to upload file" });
     }
 
-    // Update the academic details with the document URL
+    // Get the document type from the request
+    const { documentType, index } = req.body;
+
+    // Update the academic details with the document URL based on document type
+    let updateQuery = {};
+    if (documentType === 'qualification') {
+      updateQuery = {
+        $set: { [`qualifications.${index}.document_url`]: uploadResult.secure_url }
+      };
+    } else if (documentType === 'exam') {
+      updateQuery = {
+        $set: { [`qualifying_exams.${index}.exam_certificate_url`]: uploadResult.secure_url }
+      };
+    } else if (documentType === 'experience') {
+      updateQuery = {
+        $set: { [`experience.${index}.experience_certificate_url`]: uploadResult.secure_url }
+      };
+    } else if (documentType === 'publication') {
+      updateQuery = {
+        $set: { [`publications.${index}.document_url`]: uploadResult.secure_url }
+      };
+    } else {
+      return res.status(400).json({ message: "Invalid document type" });
+    }
+
     const academic = await AcademicDetails.findOneAndUpdate(
       { userid: req.user._id },
-      { $push: { 'qualifications.$.document_url': uploadResult.secure_url } },
+      updateQuery,
       { new: true }
     );
 
@@ -176,7 +200,7 @@ const uploadAcademicDocument = async (req, res) => {
     fs.unlinkSync(req.file.path);
 
     return res.status(200).json({
-      message: "Academic document uploaded successfully",
+      message: "Document uploaded successfully",
       url: uploadResult.secure_url,
       academic
     });

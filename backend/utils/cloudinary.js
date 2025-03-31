@@ -11,36 +11,19 @@ cloudinary.config({
   secure: true // Force HTTPS
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
-    try {
-        if(!localFilePath) return null;
-
-        const uploadOptions = {
-            resource_type: 'auto',
-            secure: true, // Force HTTPS
-            use_filename: true,
-            unique_filename: true,
-            overwrite: true,
-            folder: 'academic_documents',
-            transformation: [{ quality: "auto", fetch_format: "auto" }]
-        };
-
-        const response = await cloudinary.uploader.upload(localFilePath, uploadOptions);
-        
-        // Ensure HTTPS URL
-        const secureUrl = response.url.replace(/^http:/, 'https:');
-        console.log("file is uploaded on cloudinary ", secureUrl);
-        
-        fs.unlinkSync(localFilePath);
-        return { ...response, secure_url: secureUrl };
-    } catch (error) {
-        console.error("Error in Cloudinary upload:", error.message);
-        if (localFilePath && fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-        }
-        return null;
-    }
-}
+const uploadOnCloudinary = async (filePath, options = {}) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      resource_type: options.resource_type || 'auto',
+      folder: options.folder || 'uploads',
+      ...options
+    });
+    return result;
+  } catch (error) {
+    console.error('Error uploading to Cloudinary:', error);
+    return null;
+  }
+};
 
 const deleteFromCloudinary = async (imageUrl, resourceType = 'image') => {
     try {
