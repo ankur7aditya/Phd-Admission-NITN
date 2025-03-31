@@ -546,76 +546,40 @@ export default function AcademicQualificationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
     try {
-      // Validate all fields before submission
-      const newErrors = {};
-      let isValid = true;
+      // Validate all fields
+      const errors = {};
+      let hasErrors = false;
 
       // Validate qualifications
       formData.qualifications.forEach((qual, index) => {
         Object.keys(qual).forEach(field => {
-          if (field !== 'document_url') { // Skip document_url validation as it's optional
-            const error = validateField(field, qual[field], qual);
-            if (error) {
-              newErrors[`qualifications.${index}.${field}`] = error;
-              isValid = false;
-            }
+          const error = validateField(field, qual[field], 'qualification');
+          if (error) {
+            errors[`qualifications.${index}.${field}`] = error;
+            hasErrors = true;
           }
         });
       });
 
       // Validate qualifying exams
       formData.qualifying_exams.forEach((exam, index) => {
-        // Validate basic exam fields
         Object.keys(exam).forEach(field => {
-          if (field !== 'cat_details' && field !== 'gate_details' && field !== 'gmat_details' && field !== 'net_details' && field !== 'other_details' && field !== 'exam_certificate_url') {
-            const error = validateField(field, exam[field]);
-            if (error) {
-              newErrors[`qualifying_exams.${index}.${field}`] = error;
-              isValid = false;
-            }
+          const error = validateField(field, exam[field], 'exam');
+          if (error) {
+            errors[`qualifying_exams.${index}.${field}`] = error;
+            hasErrors = true;
           }
         });
-
-        // Validate exam-specific details
-        if (exam.exam_type === 'NET') {
-          const netError = validateNETType(exam.exam_type, exam.net_details);
-          if (netError) {
-            newErrors[`qualifying_exams.${index}.net_details.type`] = netError;
-            isValid = false;
-          }
-        } else if (exam.exam_type === 'GATE') {
-          const gateError = validateGATEMarks(exam.gate_details);
-          if (gateError) {
-            newErrors[`qualifying_exams.${index}.gate_details`] = gateError;
-            isValid = false;
-          }
-        } else if (exam.exam_type === 'CAT') {
-          const catError = validateCATMarks(exam.cat_details);
-          if (catError) {
-            newErrors[`qualifying_exams.${index}.cat_details`] = catError;
-            isValid = false;
-          }
-        } else if (exam.exam_type === 'GMAT') {
-          const gmatError = validateGMATMarks(exam.gmat_details);
-          if (gmatError) {
-            newErrors[`qualifying_exams.${index}.gmat_details`] = gmatError;
-            isValid = false;
-          }
-        }
       });
 
       // Validate experience
       formData.experience.forEach((exp, index) => {
         Object.keys(exp).forEach(field => {
-          if (field !== 'experience_certificate_url') { // Skip certificate URL validation
-            const error = validateField(field, exp[field], { type: 'experience' });
-            if (error) {
-              newErrors[`experience.${index}.${field}`] = error;
-              isValid = false;
-            }
+          const error = validateField(field, exp[field], 'experience');
+          if (error) {
+            errors[`experience.${index}.${field}`] = error;
+            hasErrors = true;
           }
         });
       });
@@ -623,135 +587,53 @@ export default function AcademicQualificationForm() {
       // Validate publications
       formData.publications.forEach((pub, index) => {
         Object.keys(pub).forEach(field => {
-          if (field !== 'document_url') { // Skip document URL validation
-            const error = validateField(field, pub[field], { type: 'publication' });
-            if (error) {
-              newErrors[`publications.${index}.${field}`] = error;
-              isValid = false;
-            }
+          const error = validateField(field, pub[field], 'publication');
+          if (error) {
+            errors[`publications.${index}.${field}`] = error;
+            hasErrors = true;
           }
         });
       });
 
-      if (!isValid) {
-        setErrors(newErrors);
-        // Show specific validation errors
-        const errorMessages = Object.entries(newErrors)
-          .map(([field, error]) => `${field}: ${error}`)
-          .join('\n');
-        toast.error(errorMessages);
+      if (hasErrors) {
+        setErrors(errors);
+        toast.error('Please fix the validation errors before submitting');
         return;
       }
 
-      // Rest of the submission code...
-      console.log('Starting form submission...');
-      console.log('Original form data:', formData);
+      // Save to localStorage
+      localStorage.setItem('academicDetails', JSON.stringify(formData));
 
-      // Format the data before submission
-      const formattedData = {
-        qualifications: formData.qualifications.map(qual => ({
-          ...qual,
-          year_of_completion: parseInt(qual.year_of_completion),
-          marks_obtained: parseFloat(qual.marks_obtained),
-          program_duration_months: parseInt(qual.program_duration_months)
-        })),
-        qualifying_exams: formData.qualifying_exams.map(exam => {
-          const formattedExam = {
-            exam_type: exam.exam_type,
-            registration_no: exam.registration_no,
-            year_of_qualification: parseInt(exam.year_of_qualification)
-          };
-
-          // Add exam-specific details based on exam type
-          if (exam.exam_type === 'NET') {
-            formattedExam.net_details = {
-              type: exam.net_details?.type || 'Without Fellowship'
-            };
-          } else if (exam.exam_type === 'CAT') {
-            formattedExam.cat_details = exam.cat_details;
-          } else if (exam.exam_type === 'GATE') {
-            formattedExam.gate_details = exam.gate_details;
-          } else if (exam.exam_type === 'GMAT') {
-            formattedExam.gmat_details = exam.gmat_details;
-          } else if (exam.exam_type === 'Others') {
-            formattedExam.other_details = exam.other_details;
-          }
-
-          return formattedExam;
-        }),
-        experience: formData.experience.map(exp => ({
-          ...exp,
-          period_from: new Date(exp.period_from),
-          period_to: exp.period_to ? new Date(exp.period_to) : undefined,
-          monthly_compensation: parseFloat(exp.monthly_compensation)
-        })),
-        publications: formData.publications.map(pub => ({
-          ...pub,
-          acceptance_year: parseInt(pub.acceptance_year)
-        }))
-      };
-
-      console.log('Formatted data before submission:', formattedData);
-
-      const endpoint = isExistingData ? 'update' : 'create';
-      const method = isExistingData ? 'put' : 'post';
-      
-      const response = await axios[method](
-        `${import.meta.env.VITE_BACKEND_URL}/api/academic/${endpoint}`,
-        formattedData,
+      // Submit to backend
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/create`,
+        formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
         }
       );
 
-      console.log('Response from server:', response.data);
-
-      if (response.data.success) {
-        // Fetch fresh data immediately after successful update
-        const freshData = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/academic/get`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-            }
-          }
-        );
-        setFormData(freshData.data);
+      if (response.status === 200) {
+        // Clear localStorage after successful submission
+        localStorage.removeItem('academicDetails');
         
-        toast.success(`Academic details ${isExistingData ? 'updated' : 'submitted'} successfully`, {
-          style: {
-            background: '#10B981',
-            color: '#ffffff',
-          },
-          iconTheme: {
-            primary: '#ffffff',
-            secondary: '#10B981',
-          },
-        });
-        navigate('/print-application');
-      } else {
-        throw new Error(response.data.message || 'Failed to submit academic details');
+        // Show success message
+        toast.success('Academic details saved successfully');
+        
+        // Navigate to payment page after a short delay
+        setTimeout(() => {
+          navigate('/payment');
+        }, 1500);
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
-      
-      if (error.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        console.error('Validation errors:', validationErrors);
-        const errorMessages = Object.entries(validationErrors)
-          .map(([field, error]) => `${field}: ${error.message}`)
-          .join('\n');
-        toast.error(errorMessages);
+      console.error('Error saving academic details:', error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
-        toast.error(error.message || `Failed to ${isExistingData ? 'update' : 'submit'} academic details`);
+        toast.error('Failed to save academic details');
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 

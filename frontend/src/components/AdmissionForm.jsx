@@ -326,40 +326,50 @@ export default function AdmissionForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Please fix the validation errors before submitting');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      console.log('Submitting form data:', formData);
-      const endpoint = isExistingData ? 'update' : 'create';
-      const method = isExistingData ? 'put' : 'post';
-      
-      const response = await axios[method](
-        `${import.meta.env.VITE_BACKEND_URL}/api/personal/${endpoint}`,
+      // Validate all fields
+      const newErrors = {};
+      let isValid = true;
+
+      // ... existing validation code ...
+
+      if (!isValid) {
+        setErrors(newErrors);
+        toast.error('Please fix the validation errors before submitting');
+        return;
+      }
+
+      // Submit to backend
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/create`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
         }
       );
 
-      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`);
-      // Clear form data from localStorage after successful submission
-      localStorage.removeItem('admissionFormData');
-      // Navigate to academic details form
-      navigate('/academic-details');
+      if (response.status === 201) {
+        // Clear localStorage after successful submission
+        localStorage.removeItem('personalDetails');
+        
+        // Show success message
+        toast.success('Personal details saved successfully');
+        
+        // Navigate to payment page after a short delay
+        setTimeout(() => {
+          navigate('/payment');
+        }, 1500);
+      }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} personal details`);
-      if (error.response?.data?.fields) {
-        console.error('Missing required fields:', error.response.data.fields);
-        toast.error(`Missing required fields: ${error.response.data.fields.join(', ')}`);
+      console.error('Error saving personal details:', error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to save personal details');
       }
     } finally {
       setIsLoading(false);
