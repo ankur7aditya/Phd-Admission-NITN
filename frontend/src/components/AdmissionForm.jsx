@@ -82,6 +82,13 @@ const validateFile = (file, type) => {
   return '';
 };
 
+// Add this helper function at the top of the file after the imports
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toISOString().split('T')[0];
+};
+
 export default function AdmissionForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -138,12 +145,16 @@ export default function AdmissionForm() {
         );
         
         if (response.data) {
-          setFormData(response.data);
+          // Format the date before setting the form data
+          const formattedData = {
+            ...response.data,
+            dob: formatDateForInput(response.data.dob)
+          };
+          setFormData(formattedData);
           setIsExistingData(true);
         }
       } catch (error) {
         console.error('Error fetching personal details:', error);
-        // Only show error if it's not a 404 (not found) error
         if (error.response?.status !== 404) {
           toast.error('Failed to fetch personal details');
         }
@@ -326,50 +337,40 @@ export default function AdmissionForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Please fix the validation errors before submitting');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validate all fields
-      const newErrors = {};
-      let isValid = true;
-
-      // ... existing validation code ...
-
-      if (!isValid) {
-        setErrors(newErrors);
-        toast.error('Please fix the validation errors before submitting');
-        return;
-      }
-
-      // Submit to backend
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/personal/create`,
+      console.log('Submitting form data:', formData);
+      const endpoint = isExistingData ? 'update' : 'create';
+      const method = isExistingData ? 'put' : 'post';
+      
+      const response = await axios[method](
+        `${import.meta.env.VITE_BACKEND_URL}/api/personal/${endpoint}`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
         }
       );
 
-      if (response.status === 201) {
-        // Clear localStorage after successful submission
-        localStorage.removeItem('personalDetails');
-        
-        // Show success message
-        toast.success('Personal details saved successfully');
-        
-        // Navigate to payment page after a short delay
-        setTimeout(() => {
-          navigate('/payment');
-        }, 1500);
-      }
+      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`);
+      // Clear form data from localStorage after successful submission
+      localStorage.removeItem('admissionFormData');
+      // Navigate to academic details form
+      navigate('/academic-details');
     } catch (error) {
-      console.error('Error saving personal details:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Failed to save personal details');
+      console.error('Error submitting form:', error);
+      toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} personal details`);
+      if (error.response?.data?.fields) {
+        console.error('Missing required fields:', error.response.data.fields);
+        toast.error(`Missing required fields: ${error.response.data.fields.join(', ')}`);
       }
     } finally {
       setIsLoading(false);

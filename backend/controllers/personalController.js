@@ -168,7 +168,7 @@ const uploadDemandDraft = async (req, res) => {
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
             { userid: req.user._id },
-            { dd_url: response.url },
+            { dd_url: response.secure_url },
             { new: true }
         );
 
