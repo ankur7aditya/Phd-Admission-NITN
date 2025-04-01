@@ -1,16 +1,43 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
+// Use /tmp directory for Vercel compatibility
+const uploadsDir = path.join(os.tmpdir(), 'phd-admission-uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Function to clean up old files
+const cleanupOldFiles = () => {
+  try {
+    const files = fs.readdirSync(uploadsDir);
+    const now = Date.now();
+    
+    files.forEach(file => {
+      const filePath = path.join(uploadsDir, file);
+      const stats = fs.statSync(filePath);
+      
+      // Delete files older than 1 hour
+      if (now - stats.mtime.getTime() > 60 * 60 * 1000) {
+        fs.unlinkSync(filePath);
+        console.log(`Cleaned up old file: ${file}`);
+      }
+    });
+  } catch (error) {
+    console.error('Error cleaning up uploads directory:', error);
+  }
+};
+
+// Clean up old files when the server starts
+cleanupOldFiles();
+
 // Configure multer for file upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    // Clean up old files before storing new ones
+    cleanupOldFiles();
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {

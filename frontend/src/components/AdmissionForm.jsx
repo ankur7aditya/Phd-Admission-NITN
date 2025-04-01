@@ -11,7 +11,7 @@ import { toast } from "react-hot-toast";
 
 // Validation functions
 const validateName = (name) => {
-  if (!name) return 'Name is required';
+  if (!name) return 'Please enter your name';
   if (name.length < 2) return 'Name must be at least 2 characters long';
   if (name.length > 30) return 'Name cannot exceed 30 characters';
   if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name can only contain letters and spaces';
@@ -19,67 +19,66 @@ const validateName = (name) => {
 };
 
 const validateAge = (dob) => {
-  if (!dob) return 'Date of birth is required';
+  if (!dob) return 'Please select your date of birth';
   const today = new Date();
   const birthDate = new Date(dob);
   const age = today.getFullYear() - birthDate.getFullYear();
-  if (age < 18) return 'Applicant must be at least 18 years old';
-  if (age > 50) return 'Applicant must not be older than 50 years';
+  if (age < 18) return 'You must be at least 18 years old to apply';
+  if (age > 50) return 'Age limit for application is 50 years';
   return '';
 };
 
 const validatePhone = (phone) => {
-  if (!phone) return 'Phone number is required';
+  if (!phone) return 'Please enter your phone number';
   if (!/^[0-9]{10}$/.test(phone)) return 'Please enter a valid 10-digit mobile number';
   return '';
 };
 
 const validatePincode = (pincode) => {
-  if (!pincode) return 'PIN code is required';
+  if (!pincode) return 'Please enter your PIN code';
   if (!/^[0-9]{6}$/.test(pincode)) return 'Please enter a valid 6-digit PIN code';
   return '';
 };
 
 const validateEmail = (email) => {
-  if (!email) return 'Email is required';
+  if (!email) return 'Please enter your email address';
   if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
-    return 'Please enter a valid email address';
+    return 'Please enter a valid email address (e.g., example@domain.com)';
   }
   return '';
 };
 
 const validateAddress = (address) => {
-  if (!address.street) return 'Street address is required';
-  if (!address.city) return 'City is required';
-  if (!address.state) return 'State is required';
-  if (!address.pincode) return 'PIN code is required';
+  if (!address.street) return 'Please enter your street address';
+  if (!address.city) return 'Please enter your city';
+  if (!address.state) return 'Please enter your state';
+  if (!address.pincode) return 'Please enter your PIN code';
   if (!/^[0-9]{6}$/.test(address.pincode)) return 'Please enter a valid 6-digit PIN code';
   return '';
 };
 
 const validateFile = (file, type) => {
-  if (!file) return `${type} is required`;
+  if (!file) return `Please upload your ${type}`;
   
-  // Check file size (max 2MB for images, 5MB for documents)
-  const maxSize = type === 'photo' || type === 'signature' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+  // Only handle image files since this is for photo and signature
+  const maxSize = 2 * 1024 * 1024; // 2MB for images
   if (file.size > maxSize) {
-    return `${type} size should not exceed ${maxSize / (1024 * 1024)}MB`;
+    return `${type.charAt(0).toUpperCase() + type.slice(1)} size should not exceed 2MB`;
   }
 
-  // Check file type
-  if (type === 'photo' || type === 'signature') {
-    // Allow only images for photo and signature
-    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
-      return `${type} must be an image file (JPEG, PNG, or GIF)`;
-    }
-  } else {
-    // Allow only PDF for other documents
-    if (file.type !== 'application/pdf') {
-      return `${type} must be a PDF file`;
-    }
+  // Check file type - only images allowed
+  if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+    return `Please upload a valid image file (JPEG, PNG, or GIF) for your ${type}`;
   }
 
   return '';
+};
+
+// Add this helper function at the top of the file after the imports
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toISOString().split('T')[0];
 };
 
 export default function AdmissionForm() {
@@ -116,7 +115,7 @@ export default function AdmissionForm() {
       pincode: "",
     },
     photo: "",
-    signature: "",
+    signature: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -138,12 +137,16 @@ export default function AdmissionForm() {
         );
         
         if (response.data) {
-          setFormData(response.data);
+          // Format the date before setting the form data
+          const formattedData = {
+            ...response.data,
+            dob: formatDateForInput(response.data.dob)
+          };
+          setFormData(formattedData);
           setIsExistingData(true);
         }
       } catch (error) {
         console.error('Error fetching personal details:', error);
-        // Only show error if it's not a 404 (not found) error
         if (error.response?.status !== 404) {
           toast.error('Failed to fetch personal details');
         }
@@ -244,40 +247,43 @@ export default function AdmissionForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file before upload
-    const fileError = validateFile(file, type);
-    if (fileError) {
-      toast.error(fileError);
+    // Validate file
+    const error = validateFile(file, type);
+    if (error) {
+      setErrors(prev => ({ ...prev, [type]: error }));
       return;
     }
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append(type, file);
-
     try {
+      const formData = new FormData();
+      formData.append(type, file);
+
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/personal/upload-${type}`,
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
         }
       );
 
-      setFormData(prev => ({
-        ...prev,
-        [type]: response.data.url
-      }));
-
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+      if (response.data[type]) {
+        setFormData(prev => ({
+          ...prev,
+          [type]: response.data[type]
+        }));
+        setErrors(prev => ({ ...prev, [type]: '' }));
+        toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+      }
     } catch (error) {
-      toast.error(`Failed to upload ${type}`);
       console.error(`Error uploading ${type}:`, error);
-    } finally {
-      setIsUploading(false);
+      setErrors(prev => ({
+        ...prev,
+        [type]: error.response?.data?.message || `Error uploading ${type}`
+      }));
+      toast.error(error.response?.data?.message || `Error uploading ${type}`);
     }
   };
 
@@ -325,38 +331,90 @@ export default function AdmissionForm() {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the validation errors before submitting');
+      const errorMessages = Object.values(errors).filter(error => error);
+      if (errorMessages.length > 0) {
+        toast.error('Please correct the following errors:', {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
+        });
+        errorMessages.forEach(message => {
+          toast.error(message, {
+            duration: 3000,
+            position: 'top-center',
+            style: {
+              background: '#ef4444',
+              color: '#fff',
+            },
+          });
+        });
+      }
       return;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Submitting form data:', formData);
-      const endpoint = isExistingData ? 'update' : 'create';
-      const method = isExistingData ? 'put' : 'post';
-      
-      const response = await axios[method](
-        `${import.meta.env.VITE_BACKEND_URL}/api/personal/${endpoint}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
-      );
+      // Format the date to ISO string for backend
+      const formattedData = {
+        ...formData,
+        dob: new Date(formData.dob).toISOString()
+      };
 
-      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`);
+      console.log('Submitting form data:', formattedData);
+      
+      const response = await axios({
+        method: isExistingData ? 'put' : 'post',
+        url: `${import.meta.env.VITE_BACKEND_URL}/api/personal/${isExistingData ? 'update' : 'create'}`,
+        data: formattedData,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      console.log('Server response:', response.data);
+
       // Clear form data from localStorage after successful submission
       localStorage.removeItem('admissionFormData');
-      // Navigate to academic details form
+
+      toast.success(`Personal details ${isExistingData ? 'updated' : 'submitted'} successfully`, {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#22c55e',
+          color: '#fff',
+        },
+      });
+
+      // Always navigate to academic details after successful submission/update
       navigate('/academic-details');
+      
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} personal details`);
+      
       if (error.response?.data?.fields) {
-        console.error('Missing required fields:', error.response.data.fields);
-        toast.error(`Missing required fields: ${error.response.data.fields.join(', ')}`);
+        const missingFields = error.response.data.fields;
+        toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`, {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
+        });
+      } else {
+        toast.error(error.response?.data?.message || `Failed to ${isExistingData ? 'update' : 'submit'} personal details. Please try again.`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
+        });
       }
     } finally {
       setIsLoading(false);
@@ -729,46 +787,100 @@ export default function AdmissionForm() {
         <div className="space-y-2">
           <Label>Photo (2x2 inches)</Label>
           <div className="flex items-center gap-4">
-            <Input
-              type="file"
-              accept="image/jpeg,image/png,image/gif"
-              onChange={(e) => handleFileUpload(e, 'photo')}
-              className="h-9 text-sm"
-            />
+            <div className="flex-1">
+              <Input
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                onChange={(e) => handleFileUpload(e, 'photo')}
+                className="h-9 text-sm"
+                disabled={isUploading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Supported formats: JPEG, PNG, GIF. Max size: 2MB
+              </p>
+            </div>
+            {isUploading && (
+              <div className="flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-gray-500">Uploading...</span>
+              </div>
+            )}
             {formData.photo && (
-              <div className="w-20 h-20 border rounded overflow-hidden">
+              <div className="w-20 h-20 border rounded overflow-hidden relative group">
                 <img
                   src={formData.photo}
                   alt="Photo preview"
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, photo: '' }))}
+                    className="text-white"
+                  >
+                    Remove
+                  </Button>
+                </div>
               </div>
             )}
           </div>
-          {errors.photo && <p className="text-sm text-red-500">{errors.photo}</p>}
+          {errors.photo && (
+            <p className="text-sm text-red-500 flex items-center">
+              <span className="mr-1">⚠️</span>
+              {errors.photo}
+            </p>
+          )}
         </div>
 
         {/* Signature Upload */}
         <div className="space-y-2">
           <Label>Signature</Label>
           <div className="flex items-center gap-4">
-            <Input
-              type="file"
-              accept="image/jpeg,image/png,image/gif"
-              onChange={(e) => handleFileUpload(e, 'signature')}
-              className="h-9 text-sm"
-            />
+            <div className="flex-1">
+              <Input
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                onChange={(e) => handleFileUpload(e, 'signature')}
+                className="h-9 text-sm"
+                disabled={isUploading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Supported formats: JPEG, PNG, GIF. Max size: 2MB
+              </p>
+            </div>
+            {isUploading && (
+              <div className="flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-gray-500">Uploading...</span>
+              </div>
+            )}
             {formData.signature && (
-              <div className="w-40 h-20 border rounded overflow-hidden">
+              <div className="w-40 h-20 border rounded overflow-hidden relative group">
                 <img
                   src={formData.signature}
                   alt="Signature preview"
                   className="w-full h-full object-contain"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, signature: '' }))}
+                    className="text-white"
+                  >
+                    Remove
+                  </Button>
+                </div>
               </div>
             )}
           </div>
-          {errors.signature && <p className="text-sm text-red-500">{errors.signature}</p>}
+          {errors.signature && (
+            <p className="text-sm text-red-500 flex items-center">
+              <span className="mr-1">⚠️</span>
+              {errors.signature}
+            </p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>

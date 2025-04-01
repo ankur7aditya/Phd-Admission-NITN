@@ -16,20 +16,30 @@ const uploadDocument = async (req, res) => {
       return res.status(400).json({ message: "File size should be less than 5MB" });
     }
 
-    const uploadResult = await uploadOnCloudinary(req.file.path);
+    // Upload to Cloudinary with resource_type: 'raw' for PDFs
+    const uploadResult = await uploadOnCloudinary(req.file.path, {
+      resource_type: 'raw',
+      folder: 'academic_documents'
+    });
     
     if (!uploadResult) {
       return res.status(500).json({ message: "Failed to upload file" });
     }
 
+    // Ensure HTTPS URL
+    const secureUrl = uploadResult.secure_url.replace(/^http:/, 'https:');
+
     // Set security headers
-    res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+    res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000' 
+      : process.env.FRONTEND_URL);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
 
     res.status(200).json({
       message: "Document uploaded successfully",
-      url: uploadResult.secure_url
+      url: secureUrl
     });
   } catch (error) {
     console.error('Error in uploadDocument:', error);

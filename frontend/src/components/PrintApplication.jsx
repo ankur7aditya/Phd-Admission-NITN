@@ -4,9 +4,10 @@ import { Printer, Loader2, Combine } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { Document, Page, Text, View, StyleSheet, PDFViewer, Image } from '@react-pdf/renderer';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { pdf } from '@react-pdf/renderer';
 import { Input } from './ui/input';
+import { ensureHttps } from '../utils/urlUtils';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -122,17 +123,35 @@ const styles = StyleSheet.create({
   photoSignatureContainer: {
     width: 200,
     alignItems: 'center',
+    marginLeft: 20,
+    marginTop: 20,
   },
   photoContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#000',
     padding: 2,
+    backgroundColor: '#fff',
   },
   signatureContainer: {
     borderWidth: 1,
     borderColor: '#000',
     padding: 2,
+    backgroundColor: '#fff',
+    width: '100%',
+    alignItems: 'center',
+  },
+  photoLabel: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginBottom: 2,
+    color: '#666',
+  },
+  signatureLabel: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginBottom: 2,
+    color: '#666',
   },
 });
 
@@ -145,7 +164,7 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         <Text style={styles.subtitle}>Application Number: {applicationNumber}</Text>
       </View>
 
-      {/* Personal Details Section */}
+      {/* Personal Details Section with Photo and Signature */}
       <View style={styles.section}>
         <View style={styles.headerRow}>
           <View style={styles.personalDetails}>
@@ -208,12 +227,13 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
             )}
           </View>
           
-          {/* Photo and Signature */}
+          {/* Photo and Signature - Moved to top right */}
           <View style={styles.photoSignatureContainer}>
             {personalDetails?.photo && (
               <View style={styles.photoContainer}>
+                <Text style={styles.photoLabel}>Recent Photograph</Text>
                 <Image
-                  src={personalDetails.photo}
+                  src={ensureHttps(personalDetails.photo)}
                   style={styles.photo}
                   cache={false}
                 />
@@ -221,8 +241,9 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
             )}
             {personalDetails?.signature && (
               <View style={styles.signatureContainer}>
+                <Text style={styles.signatureLabel}>Signature</Text>
                 <Image
-                  src={personalDetails.signature}
+                  src={ensureHttps(personalDetails.signature)}
                   style={styles.signature}
                   cache={false}
                 />
@@ -261,168 +282,92 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         </View>
       </View>
 
-      {/* Academic Details Section */}
+      {/* Academic Details Section - Reformatted */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Academic Details</Text>
-        
-        {/* Qualifications */}
-        <Text style={styles.subsectionTitle}>Qualifications</Text>
+        <Text style={styles.sectionTitle}>Academic Qualifications</Text>
         {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`qual-${index}`} style={styles.row}>
-            <Text style={styles.label}>Standard</Text>
-            <Text style={styles.value}>{qual.standard}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{qual.standard}</Text>
+            <View style={styles.value}>
+              <Text>{qual.degree_name}</Text>
+              <Text>{qual.university}</Text>
+              <Text>Year: {qual.year_of_completion}</Text>
+              <Text>Marks: {qual.marks_obtained} {qual.marks_type}</Text>
+              {qual.branch && <Text>Branch: {qual.branch}</Text>}
+              <Text>Duration: {qual.program_duration_months} months</Text>
+          </View>
           </View>
         ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`degree-${index}`} style={styles.row}>
-            <Text style={styles.label}>Degree</Text>
-            <Text style={styles.value}>{qual.degree_name}</Text>
           </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`univ-${index}`} style={styles.row}>
-            <Text style={styles.label}>University</Text>
-            <Text style={styles.value}>{qual.university}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`year-${index}`} style={styles.row}>
-            <Text style={styles.label}>Year of Completion</Text>
-            <Text style={styles.value}>{qual.year_of_completion}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`marks-${index}`} style={styles.row}>
-            <Text style={styles.label}>Marks</Text>
-            <Text style={styles.value}>{qual.marks_obtained} {qual.marks_type}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`branch-${index}`} style={styles.row}>
-            <Text style={styles.label}>Branch</Text>
-            <Text style={styles.value}>{qual.branch}</Text>
-          </View>
-        ))}
-        {academicDetails?.qualifications.map((qual, index) => (
-          <View key={`duration-${index}`} style={styles.row}>
-            <Text style={styles.label}>Program Duration</Text>
-            <Text style={styles.value}>{qual.program_duration_months} months</Text>
-          </View>
-        ))}
 
-        {/* Qualifying Exams */}
-        <Text style={styles.subsectionTitle}>Qualifying Exams</Text>
+      {/* Qualifying Exams Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Qualifying Examinations</Text>
         {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={`exam-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Exam Type</Text>
-              <Text style={styles.value}>{exam.exam_type}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Registration No</Text>
-              <Text style={styles.value}>{exam.registration_no}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Year of Qualification</Text>
-              <Text style={styles.value}>{exam.year_of_qualification}</Text>
-            </View>
-            
-            {/* NET-specific details */}
-            {exam.exam_type === 'NET' && (
-              <>
-                <View style={styles.row}>
-                  <Text style={styles.label}>NET Type</Text>
-                  <Text style={styles.value}>{exam.net_details?.type}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Subject</Text>
-                  <Text style={styles.value}>{exam.net_details?.subject}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Score</Text>
-                  <Text style={styles.value}>{exam.net_details?.score}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Rank</Text>
-                  <Text style={styles.value}>{exam.net_details?.rank}</Text>
-                </View>
-              </>
-            )}
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{exam.exam_type}</Text>
+            <View style={styles.value}>
+              <Text>Registration No: {exam.registration_no}</Text>
+              <Text>Year: {exam.year_of_qualification}</Text>
+              {exam.exam_type === 'NET' && (
+                <>
+                  <Text>Type: {exam.net_details?.type}</Text>
+                  <Text>Subject: {exam.net_details?.subject}</Text>
+                  <Text>Score: {exam.net_details?.score}</Text>
+                  <Text>Rank: {exam.net_details?.rank}</Text>
+                </>
+              )}
+          </View>
           </View>
         ))}
+          </View>
 
-        {/* Experience */}
-        <Text style={styles.subsectionTitle}>Experience</Text>
+      {/* Experience Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Professional Experience</Text>
         {academicDetails?.experience.map((exp, index) => (
-          <View key={`exp-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Type</Text>
-              <Text style={styles.value}>{exp.type}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Organization</Text>
-              <Text style={styles.value}>{exp.organisation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Place</Text>
-              <Text style={styles.value}>{exp.place}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Period</Text>
-              <Text style={styles.value}>{new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Designation</Text>
-              <Text style={styles.value}>{exp.designation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Monthly Compensation</Text>
-              <Text style={styles.value}>{exp.monthly_compensation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Nature of Work</Text>
-              <Text style={styles.value}>{exp.nature_of_work}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{exp.type}</Text>
+            <View style={styles.value}>
+              <Text>Organization: {exp.organisation}</Text>
+              <Text>Place: {exp.place}</Text>
+              <Text>Period: {new Date(exp.period_from).toLocaleDateString()} - {exp.period_to ? new Date(exp.period_to).toLocaleDateString() : 'Present'}</Text>
+              <Text>Designation: {exp.designation}</Text>
+              <Text>Monthly Compensation: {exp.monthly_compensation}</Text>
+              <Text>Nature of Work: {exp.nature_of_work}</Text>
             </View>
           </View>
         ))}
+      </View>
 
-        {/* Publications */}
-        <Text style={styles.subsectionTitle}>Publications</Text>
+      {/* Publications Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Publications</Text>
         {academicDetails?.publications.map((pub, index) => (
-          <View key={`pub-${index}`}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Type</Text>
-              <Text style={styles.value}>{pub.type}</Text>
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{pub.type}</Text>
+            <View style={styles.value}>
+              <Text>Title: {pub.paper_title}</Text>
+              <Text>Affiliation: {pub.affiliation}</Text>
+              <Text>Year: {pub.acceptance_year}</Text>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Title</Text>
-              <Text style={styles.value}>{pub.paper_title}</Text>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Affiliation</Text>
-              <Text style={styles.value}>{pub.affiliation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Acceptance Year</Text>
-              <Text style={styles.value}>{pub.acceptance_year}</Text>
-            </View>
-          </View>
         ))}
       </View>
 
       {/* Payment Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Payment Details</Text>
-        <View style={styles.row}>
+            <View style={styles.row}>
           <Text style={styles.label}>Demand Draft</Text>
           <Text style={styles.value}>{personalDetails?.dd_url ? 'Uploaded' : 'Not Uploaded'}</Text>
         </View>
-      </View>
-
+            </View>
+            
       {/* Documents Section */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>Documents</Text>
-      </View>
+      </View> */}
     </Page>
   </>
 );
@@ -529,38 +474,84 @@ export default function PrintApplication() {
         applicationPages.forEach(page => mergedPdf.addPage(page));
         console.log(`Added ${applicationPages.length} pages from application form`);
 
+        // Helper function to ensure HTTPS URLs and proper Cloudinary raw format
+        const ensureHttps = (url) => {
+          if (!url) return null;
+          console.log('Original URL:', url);
+          
+          // Convert to raw format if it's a Cloudinary URL
+          if (url.includes('cloudinary.com')) {
+            // Check if this is a photo or signature URL (they should keep the /image/ path)
+            if (url.includes('/image/') && (url.includes('photo') || url.includes('signature'))) {
+              console.log('Keeping image format for photo/signature:', url);
+              return url;
+            }
+            
+            // For PDFs and other documents, remove /image/ and ensure raw format
+            let processedUrl = url.replace('/image/', '/');
+            
+            // For other documents, ensure raw format
+            if (!processedUrl.includes('/raw/upload/')) {
+              processedUrl = processedUrl.replace('/upload/', '/raw/upload/');
+            }
+            console.log('Processed URL for document:', processedUrl);
+            return processedUrl;
+          }
+          
+          if (url.startsWith('http:')) {
+            const httpsUrl = url.replace('http:', 'https:');
+            console.log('Converted to HTTPS:', httpsUrl);
+            return httpsUrl;
+          }
+          
+          console.log('Returning original URL:', url);
+  return url;
+};
+
         // Merge all documents
         const documentsToMerge = [
           // Personal documents - only demand draft
-          ...(personalDetails?.dd_url ? [{ url: personalDetails.dd_url, type: 'demand-draft', contentType: 'application/pdf' }] : []),
+          ...(personalDetails?.dd_url ? [{
+            url: ensureHttps(personalDetails.dd_url),
+            type: 'demand-draft',
+            contentType: 'application/pdf'
+          }] : []),
           
           // Qualification documents
-          ...(academicDetails?.qualifications?.map(qual => ({
-            url: qual.document_url,
+          ...(academicDetails?.qualifications?.flatMap(qual => 
+            qual.document_url ? [{
+              url: ensureHttps(qual.document_url),
             type: `qualification-${qual.standard}`,
             contentType: 'application/pdf'
-          })) || []),
+            }] : []
+          ) || []),
           
           // Qualifying exam documents
-          ...(academicDetails?.qualifying_exams?.map(exam => ({
-            url: exam.document_url,
+          ...(academicDetails?.qualifying_exams?.flatMap(exam => 
+            exam.document_url ? [{
+              url: ensureHttps(exam.document_url),
             type: `exam-${exam.exam_type}`,
             contentType: 'application/pdf'
-          })) || []),
+            }] : []
+          ) || []),
           
           // Experience documents
-          ...(academicDetails?.experience?.map(exp => ({
-            url: exp.document_url,
+          ...(academicDetails?.experience?.flatMap(exp => 
+            exp.document_url ? [{
+              url: ensureHttps(exp.document_url),
             type: `experience-${exp.organisation}`,
             contentType: 'application/pdf'
-          })) || []),
+            }] : []
+          ) || []),
           
           // Publication documents
-          ...(academicDetails?.publications?.map(pub => ({
-            url: pub.document_url,
+          ...(academicDetails?.publications?.flatMap(pub => 
+            pub.document_url ? [{
+              url: ensureHttps(pub.document_url),
             type: `publication-${pub.paper_title}`,
             contentType: 'application/pdf'
-          })) || [])
+            }] : []
+          ) || [])
         ];
 
         // Process each document sequentially
@@ -568,74 +559,44 @@ export default function PrintApplication() {
           if (doc.url) {
             try {
               console.log(`Processing document for ${doc.type}...`);
-              const docResponse = await fetch(doc.url);
-              if (!docResponse.ok) throw new Error(`Failed to fetch document: ${docResponse.statusText}`);
-              const docBytes = await docResponse.arrayBuffer();
+              console.log(`Document URL: ${doc.url}`);
+              
+              // Use the same approach as preview - create an object element
+              const response = await fetch(doc.url, {
+                method: 'GET',
+                headers: {
+                  'Accept': 'application/pdf'
+                }
+              });
+
+              if (!response.ok) {
+                console.error(`Failed to fetch document: ${response.status}`, response.statusText);
+                throw new Error(`Failed to fetch document: ${response.status}`);
+              }
+
+              const blob = await response.blob();
+              console.log(`Successfully fetched blob for ${doc.type}, size: ${blob.size}`);
+              
+              const arrayBuffer = await blob.arrayBuffer();
+              console.log(`Successfully converted blob to arrayBuffer for ${doc.type}`);
               
               if (doc.contentType === 'application/pdf') {
-                const docPdf = await PDFDocument.load(docBytes);
+                const docPdf = await PDFDocument.load(arrayBuffer);
                 const pages = await mergedPdf.copyPages(docPdf, docPdf.getPageIndices());
                 pages.forEach(page => mergedPdf.addPage(page));
                 console.log(`Added ${pages.length} pages from ${doc.type} document`);
-              } else if (doc.contentType.startsWith('image/')) {
-                const docPage = mergedPdf.addPage();
-                let docImage;
-                
-                try {
-                  if (doc.contentType === 'image/jpeg') {
-                    docImage = await mergedPdf.embedJpg(docBytes);
-                  } else if (doc.contentType === 'image/png') {
-                    docImage = await mergedPdf.embedPng(docBytes);
-                  } else {
-                    throw new Error(`Unsupported image format: ${doc.contentType}`);
-                  }
-                  
-                  const { width, height } = docImage.scale(1);
-                  const pageWidth = docPage.getWidth();
-                  const pageHeight = docPage.getHeight();
-                  
-                  // Calculate dimensions for photo and signature
-                  let targetWidth, targetHeight;
-                  if (doc.type === 'photo') {
-                    // Photo dimensions: 2x2 inches (144x144 points)
-                    targetWidth = 144;
-                    targetHeight = 144;
-                  } else if (doc.type === 'signature') {
-                    // Signature dimensions: 3x1 inches (216x72 points)
-                    targetWidth = 216;
-                    targetHeight = 72;
-                  } else {
-                    // For other images, maintain aspect ratio
-                    const scale = Math.min(pageWidth / width, pageHeight / height);
-                    targetWidth = width * scale;
-                    targetHeight = height * scale;
-                  }
-                  
-                  // Center the image on the page
-                  const x = (pageWidth - targetWidth) / 2;
-                  const y = (pageHeight - targetHeight) / 2;
-                  
-                  docPage.drawImage(docImage, {
-                    x,
-                    y,
-                    width: targetWidth,
-                    height: targetHeight,
-                  });
-                  console.log(`Added image from ${doc.type} document`);
-                } catch (imageError) {
-                  console.error(`Error processing image for ${doc.type}:`, imageError);
-                  // Add a text placeholder if image processing fails
-                  docPage.drawText(`[${doc.type} image could not be processed]`, {
-                    x: 50,
-                    y: pageHeight / 2,
-                    size: 12,
-                    color: rgb(1, 0, 0),
-                  });
-                }
               }
             } catch (error) {
               console.error(`Error processing document for ${doc.type}:`, error);
-              toast.error(`Failed to add ${doc.type} document to PDF`);
+              // Add a placeholder page with error message
+              const errorPage = mergedPdf.addPage();
+              errorPage.drawText(`Error loading ${doc.type} document: ${error.message}`, {
+                    x: 50,
+                y: errorPage.getHeight() / 2,
+                    size: 12,
+                    color: rgb(1, 0, 0),
+                  });
+              toast.error(`Failed to add ${doc.type} document to PDF: ${error.message}`);
             }
           }
         }
@@ -662,6 +623,18 @@ export default function PrintApplication() {
   const handleDDUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed for Demand Draft');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
 
     setIsUploading(true);
     const formData = new FormData();
@@ -934,7 +907,7 @@ export default function PrintApplication() {
                     <div className="flex justify-between items-center mb-2">
                       <p className="font-medium">{qual.standard} - {qual.degree_name}</p>
                       <a 
-                        href={qual.document_url}
+                        href={ensureHttps(qual.document_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline text-sm"
@@ -943,11 +916,13 @@ export default function PrintApplication() {
                       </a>
                     </div>
                     <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
-                      <iframe
-                        src={qual.document_url}
+                      <object
+                        data={`${ensureHttps(qual.document_url)}#toolbar=0&navpanes=0`}
+                        type="application/pdf"
                         className="w-full h-full"
-                        title={`Document ${index + 1}`}
-                      />
+                      >
+                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={ensureHttps(qual.document_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                      </object>
                     </div>
                   </div>
                 )
@@ -955,12 +930,12 @@ export default function PrintApplication() {
 
               {/* Experience Documents */}
               {academicDetails?.experience.map((exp, index) => (
-                exp.document_url && (
+                exp.experience_certificate_url && (
                   <div key={`exp-${index}`} className="p-3 bg-gray-50 rounded">
                     <div className="flex justify-between items-center mb-2">
                       <p className="font-medium">Experience at {exp.organisation}</p>
                       <a 
-                        href={exp.document_url}
+                        href={ensureHttps(exp.experience_certificate_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline text-sm"
@@ -969,11 +944,13 @@ export default function PrintApplication() {
                       </a>
                     </div>
                     <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
-                      <iframe
-                        src={exp.document_url}
+                      <object
+                        data={`${ensureHttps(exp.experience_certificate_url)}#toolbar=0&navpanes=0`}
+                        type="application/pdf"
                         className="w-full h-full"
-                        title={`Experience Document ${index + 1}`}
-                      />
+                      >
+                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={ensureHttps(exp.experience_certificate_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                      </object>
                     </div>
                   </div>
                 )
@@ -986,7 +963,7 @@ export default function PrintApplication() {
                     <div className="flex justify-between items-center mb-2">
                       <p className="font-medium">{pub.paper_title}</p>
                       <a 
-                        href={pub.document_url}
+                        href={ensureHttps(pub.document_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline text-sm"
@@ -995,11 +972,13 @@ export default function PrintApplication() {
                       </a>
                     </div>
                     <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
-                      <iframe
-                        src={pub.document_url}
+                      <object
+                        data={`${ensureHttps(pub.document_url)}#toolbar=0&navpanes=0`}
+                        type="application/pdf"
                         className="w-full h-full"
-                        title={`Publication Document ${index + 1}`}
-                      />
+                      >
+                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={ensureHttps(pub.document_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                      </object>
                     </div>
                   </div>
                 )
@@ -1016,7 +995,7 @@ export default function PrintApplication() {
                 <div className="flex items-center gap-2">
                   {personalDetails?.dd_url ? (
                     <a 
-                      href={personalDetails.dd_url}
+                      href={ensureHttps(personalDetails.dd_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:underline text-sm"
@@ -1036,11 +1015,13 @@ export default function PrintApplication() {
               </div>
               {personalDetails?.dd_url && (
                 <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
-                  <iframe
-                    src={personalDetails.dd_url}
+                  <object
+                    data={`${ensureHttps(personalDetails.dd_url)}#toolbar=0&navpanes=0`}
+                    type="application/pdf"
                     className="w-full h-full"
-                    title="Demand Draft Document"
-                  />
+                  >
+                    <p className="text-sm text-gray-600">Unable to display PDF file. <a href={ensureHttps(personalDetails.dd_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                  </object>
                 </div>
               )}
             </div>

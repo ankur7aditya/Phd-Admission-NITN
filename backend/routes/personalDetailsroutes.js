@@ -10,7 +10,8 @@ console.log('Imported functions:', {
     getPersonal: !!personalController.getPersonal,
     uploadPhoto: !!personalController.uploadPhoto,
     uploadSignature: !!personalController.uploadSignature,
-    uploadDemandDraft: !!personalController.uploadDemandDraft
+    uploadDemandDraft: !!personalController.uploadDemandDraft,
+    updatePersonal: !!personalController.updatePersonal
 });
 
 // Create personal details
@@ -18,6 +19,9 @@ router.post('/create', verifyJWT, personalController.createPersonal);
 
 // Get personal details
 router.get('/get', verifyJWT, personalController.getPersonal);
+
+// Update personal details
+router.put('/update', verifyJWT, personalController.updatePersonal);
 
 // Upload photo
 router.post('/upload-photo', verifyJWT, imageUpload.single('photo'), personalController.uploadPhoto);
