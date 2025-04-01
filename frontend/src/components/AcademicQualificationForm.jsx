@@ -12,97 +12,97 @@ import { toast } from "react-hot-toast";
 const validateField = (field, value, context = {}) => {
   switch (field) {
     case 'standard':
-      if (!value) return 'Standard is required';
+      if (!value) return 'Please select your qualification level';
       if (!['10th', '12th', 'UG', 'PG', 'PhD'].includes(value)) {
-        return 'Invalid standard';
+        return 'Please select a valid qualification level (10th, 12th, UG, PG, or PhD)';
       }
       break;
     case 'degree_name':
-      if (!value) return 'Degree name is required';
+      if (!value) return 'Please enter your degree name';
       break;
     case 'university':
-      if (!value) return 'University/Board is required';
+      if (!value) return 'Please enter your university or board name';
       break;
     case 'year_of_completion':
-      return validateYear(value);
+      return validateYear(value, 'completion');
     case 'marks_type':
-      if (!value) return 'Marks type is required';
+      if (!value) return 'Please select your marks type';
       if (!['Percentage', 'CGPA'].includes(value)) {
-        return 'Invalid marks type';
+        return 'Please select either Percentage or CGPA';
       }
       break;
     case 'marks_obtained':
       return validateMarks(value, context.max_cgpa || 100);
     case 'branch':
-      if (!value) return 'Branch/Specialization is required';
+      if (!value) return 'Please enter your branch or specialization';
       break;
     case 'program_duration_months':
-      if (!value) return 'Program duration is required';
-      if (parseInt(value) < 0) return 'Duration cannot be negative';
+      if (!value) return 'Please enter the program duration';
+      if (parseInt(value) < 0) return 'Program duration cannot be negative';
       break;
     case 'exam_type':
-      if (!value) return 'Exam type is required';
+      if (!value) return 'Please select the type of exam';
       if (!['CAT', 'GATE', 'GMAT', 'NET', 'Others'].includes(value)) {
-        return 'Invalid exam type';
+        return 'Please select a valid exam type (CAT, GATE, GMAT, NET, or Others)';
       }
       break;
     case 'registration_no':
-      if (!value) return 'Registration number is required';
+      if (!value) return 'Please enter your registration number';
       break;
     case 'year_of_qualification':
-      return validateYear(value);
+      return validateYear(value, 'qualification');
     case 'type':
-      if (!value) return 'Type is required';
+      if (!value) return 'Please select the type';
       if (context.type === 'experience' && !['Industry', 'Academia', 'Research'].includes(value)) {
-        return 'Invalid experience type';
+        return 'Please select a valid experience type (Industry, Academia, or Research)';
       }
       if (context.type === 'publication' && !['Journal', 'Conference', 'Book'].includes(value)) {
-        return 'Invalid publication type';
+        return 'Please select a valid publication type (Journal, Conference, or Book)';
       }
       break;
     case 'organisation':
-      if (!value) return 'Organisation is required';
+      if (!value) return 'Please enter the organization name';
       break;
     case 'place':
-      if (!value) return 'Place is required';
+      if (!value) return 'Please enter the location';
       break;
     case 'period_from':
-      if (!value) return 'Period from is required';
+      if (!value) return 'Please select the start date';
       break;
     case 'monthly_compensation':
-      if (!value) return 'Monthly compensation is required';
-      if (parseFloat(value) < 0) return 'Compensation cannot be negative';
+      if (!value) return 'Please enter your monthly compensation';
+      if (parseFloat(value) < 0) return 'Monthly compensation cannot be negative';
       break;
     case 'designation':
-      if (!value) return 'Designation is required';
+      if (!value) return 'Please enter your designation';
       break;
     case 'nature_of_work':
-      if (!value) return 'Nature of work is required';
+      if (!value) return 'Please describe the nature of your work';
       break;
     case 'paper_title':
-      if (!value) return 'Paper title is required';
+      if (!value) return 'Please enter the paper title';
       break;
     case 'affiliation':
-      if (!value) return 'Affiliation is required';
+      if (!value) return 'Please enter your affiliation';
       break;
     case 'acceptance_year':
-      return validateYear(value);
+      return validateYear(value, 'acceptance');
   }
   return '';
 };
 
-const validateYear = (year) => {
-  if (!year) return 'Year is required';
+const validateYear = (year, context = '') => {
+  if (!year) return `Please enter the year of ${context}`;
   const currentYear = new Date().getFullYear();
-  if (parseInt(year) < 1900) return 'Invalid year';
+  if (parseInt(year) < 1900) return 'Please enter a valid year (after 1900)';
   if (parseInt(year) > currentYear) return 'Year cannot be in the future';
   return '';
 };
 
 const validateMarks = (marks, maxMarks) => {
-  if (!marks) return 'Marks are required';
+  if (!marks) return 'Please enter your marks';
   const marksNum = parseFloat(marks);
-  if (isNaN(marksNum)) return 'Marks must be a number';
+  if (isNaN(marksNum)) return 'Please enter a valid number for marks';
   if (marksNum < 0) return 'Marks cannot be negative';
   if (marksNum > maxMarks) return `Marks cannot exceed ${maxMarks}`;
   return '';
@@ -110,10 +110,10 @@ const validateMarks = (marks, maxMarks) => {
 
 const validateNETType = (examType, netDetails) => {
   if (examType === 'NET' && !netDetails?.type) {
-    return 'NET type is required';
+    return 'Please select your NET qualification type';
   }
   if (netDetails?.type && !['With Fellowship', 'Without Fellowship'].includes(netDetails.type)) {
-    return 'Invalid NET type';
+    return 'Please select either "With Fellowship" or "Without Fellowship"';
   }
   return '';
 };
@@ -132,7 +132,7 @@ const validateGATEMarks = (gateDetails) => {
   }
 
   if (gateDetails.gate_rank !== undefined && gateDetails.gate_rank < 1) {
-    return 'Rank must be at least 1';
+    return 'Please enter a valid GATE rank (must be at least 1)';
   }
 
   return '';
@@ -165,7 +165,7 @@ const validateGMATMarks = (gmatDetails) => {
   
   for (const field of fields) {
     if (gmatDetails[field] !== undefined && gmatDetails[field] < 0) {
-      return `${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} cannot be negative`;
+      return `Please enter a valid ${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
     }
   }
 
@@ -177,6 +177,14 @@ const formatDateForInput = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toISOString().split('T')[0];
+};
+
+// Add this function at the top of the file, after the validation functions
+const scrollToError = (fieldId) => {
+  const element = document.getElementById(fieldId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 };
 
 export default function AcademicQualificationForm() {
@@ -315,14 +323,14 @@ export default function AcademicQualificationForm() {
     // Validate field based on name
     switch (name) {
       case 'year_of_completion':
-        error = validateYear(value);
+        error = validateYear(value, 'completion');
         break;
       case 'marks_obtained':
         error = validateMarks(value, formData.qualifications[index].max_cgpa || 100);
         break;
       case 'program_duration_months':
-        if (!value) error = 'Program duration is required';
-        else if (parseInt(value) < 0) error = 'Duration cannot be negative';
+        if (!value) error = 'Please enter the program duration';
+        else if (parseInt(value) < 0) error = 'Program duration cannot be negative';
         break;
       default:
         if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
@@ -333,6 +341,12 @@ export default function AcademicQualificationForm() {
       ...prev,
       [`qualifications.${index}.${name}`]: error
     }));
+
+    // If there's an error, scroll to the field
+    if (error) {
+      const fieldId = `qualification-${index}-${name}`;
+      scrollToError(fieldId);
+    }
 
     // Update form data
     handleChange(e, index, 'qualifications');
@@ -345,10 +359,10 @@ export default function AcademicQualificationForm() {
     // Validate field based on name
     switch (name) {
       case 'year_of_qualification':
-        error = validateYear(value);
+        error = validateYear(value, 'qualification');
         break;
       case 'registration_no':
-        if (!value) error = 'Registration number is required';
+        if (!value) error = 'Please enter your registration number';
         break;
       default:
         if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
@@ -359,6 +373,12 @@ export default function AcademicQualificationForm() {
       ...prev,
       [`qualifying_exams.${index}.${name}`]: error
     }));
+
+    // If there's an error, scroll to the field
+    if (error) {
+      const fieldId = `exam-${index}-${name}`;
+      scrollToError(fieldId);
+    }
 
     // Update form data
     handleChange(e, index, 'qualifying_exams');
@@ -391,6 +411,12 @@ export default function AcademicQualificationForm() {
       ...prev,
       [`qualifying_exams.${index}.${examType}.${name}`]: error
     }));
+
+    // If there's an error, scroll to the field
+    if (error) {
+      const fieldId = `exam-${index}-${examType}-${name}`;
+      scrollToError(fieldId);
+    }
 
     // Update form data
     setFormData(prev => ({
@@ -546,94 +572,91 @@ export default function AcademicQualificationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      // Validate all fields
-      const errors = {};
-      let hasErrors = false;
+    
+    if (!validateForm()) {
+      const errorMessages = Object.values(errors).filter(error => error);
+      if (errorMessages.length > 0) {
+        // Find the first error field and scroll to it
+        const firstErrorField = Object.keys(errors)[0];
+        const fieldId = firstErrorField.split('.').join('-');
+        scrollToError(fieldId);
 
-      // Validate qualifications
-      formData.qualifications.forEach((qual, index) => {
-        Object.keys(qual).forEach(field => {
-          const error = validateField(field, qual[field], 'qualification');
-          if (error) {
-            errors[`qualifications.${index}.${field}`] = error;
-            hasErrors = true;
-          }
+        toast.error('Please correct the following errors:', {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
         });
-      });
-
-      // Validate qualifying exams
-      formData.qualifying_exams.forEach((exam, index) => {
-        Object.keys(exam).forEach(field => {
-          const error = validateField(field, exam[field], 'exam');
-          if (error) {
-            errors[`qualifying_exams.${index}.${field}`] = error;
-            hasErrors = true;
-          }
+        errorMessages.forEach(message => {
+          toast.error(message, {
+            duration: 3000,
+            position: 'top-center',
+            style: {
+              background: '#ef4444',
+              color: '#fff',
+            },
+          });
         });
-      });
-
-      // Validate experience
-      formData.experience.forEach((exp, index) => {
-        Object.keys(exp).forEach(field => {
-          const error = validateField(field, exp[field], 'experience');
-          if (error) {
-            errors[`experience.${index}.${field}`] = error;
-            hasErrors = true;
-          }
-        });
-      });
-
-      // Validate publications
-      formData.publications.forEach((pub, index) => {
-        Object.keys(pub).forEach(field => {
-          const error = validateField(field, pub[field], 'publication');
-          if (error) {
-            errors[`publications.${index}.${field}`] = error;
-            hasErrors = true;
-          }
-        });
-      });
-
-      if (hasErrors) {
-        setErrors(errors);
-        toast.error('Please fix the validation errors before submitting');
-        return;
       }
+      return;
+    }
 
-      // Save to localStorage
-      localStorage.setItem('academicDetails', JSON.stringify(formData));
+    setIsLoading(true);
 
-      // Submit to backend
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/academic/create`,
+    try {
+      const endpoint = isExistingData ? 'update' : 'create';
+      const method = isExistingData ? 'put' : 'post';
+      
+      const response = await axios[method](
+        `${import.meta.env.VITE_BACKEND_URL}/api/academic/${endpoint}`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
         }
       );
 
-      if (response.status === 200) {
-        // Clear localStorage after successful submission
-        localStorage.removeItem('academicDetails');
-        
-        // Show success message
-        toast.success('Academic details saved successfully');
-        
-        // Navigate to payment page after a short delay
-        setTimeout(() => {
-          navigate('/payment');
-        }, 1500);
-      }
+      toast.success(`Academic details ${isExistingData ? 'updated' : 'submitted'} successfully`, {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#22c55e',
+          color: '#fff',
+        },
+      });
+      
+      // Clear form data from localStorage after successful submission
+      localStorage.removeItem('academicDetails');
+      // Navigate to payment page
+      navigate('/payment');
     } catch (error) {
-      console.error('Error saving academic details:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+      console.error('Error submitting form:', error);
+      
+      if (error.response?.data?.fields) {
+        const missingFields = error.response.data.fields;
+        toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`, {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
+        });
       } else {
-        toast.error('Failed to save academic details');
+        toast.error(`Failed to ${isExistingData ? 'update' : 'submit'} academic details. Please try again.`, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#ef4444',
+            color: '#fff',
+          },
+        });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -675,6 +698,34 @@ export default function AcademicQualificationForm() {
 
   const handleExperienceChange = (e, index) => {
     const { name, value } = e.target;
+    let error = '';
+
+    // Validate field based on name
+    switch (name) {
+      case 'period_from':
+        if (!value) error = 'Please select the start date';
+        break;
+      case 'monthly_compensation':
+        if (!value) error = 'Please enter your monthly compensation';
+        else if (parseFloat(value) < 0) error = 'Monthly compensation cannot be negative';
+        break;
+      default:
+        if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
+    }
+
+    // Update errors state
+    setErrors(prev => ({
+      ...prev,
+      [`experience.${index}.${name}`]: error
+    }));
+
+    // If there's an error, scroll to the field
+    if (error) {
+      const fieldId = `experience-${index}-${name}`;
+      scrollToError(fieldId);
+    }
+
+    // Update form data
     setFormData(prev => ({
       ...prev,
       experience: prev.experience.map((exp, i) => 
@@ -685,6 +736,30 @@ export default function AcademicQualificationForm() {
 
   const handlePublicationChange = (e, index) => {
     const { name, value } = e.target;
+    let error = '';
+
+    // Validate field based on name
+    switch (name) {
+      case 'acceptance_year':
+        error = validateYear(value, 'acceptance');
+        break;
+      default:
+        if (!value) error = `${name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} is required`;
+    }
+
+    // Update errors state
+    setErrors(prev => ({
+      ...prev,
+      [`publications.${index}.${name}`]: error
+    }));
+
+    // If there's an error, scroll to the field
+    if (error) {
+      const fieldId = `publication-${index}-${name}`;
+      scrollToError(fieldId);
+    }
+
+    // Update form data
     setFormData(prev => ({
       ...prev,
       publications: prev.publications.map((pub, i) => 
@@ -875,6 +950,62 @@ export default function AcademicQualificationForm() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    let hasErrors = false;
+
+    // Validate qualifications
+    formData.qualifications.forEach((qual, index) => {
+      Object.keys(qual).forEach(field => {
+        const error = validateField(field, qual[field], 'qualification');
+        if (error) {
+          errors[`qualifications.${index}.${field}`] = error;
+          hasErrors = true;
+        }
+      });
+    });
+
+    // Validate qualifying exams
+    formData.qualifying_exams.forEach((exam, index) => {
+      Object.keys(exam).forEach(field => {
+        const error = validateField(field, exam[field], 'exam');
+        if (error) {
+          errors[`qualifying_exams.${index}.${field}`] = error;
+          hasErrors = true;
+        }
+      });
+    });
+
+    // Validate experience
+    formData.experience.forEach((exp, index) => {
+      Object.keys(exp).forEach(field => {
+        const error = validateField(field, exp[field], 'experience');
+        if (error) {
+          errors[`experience.${index}.${field}`] = error;
+          hasErrors = true;
+        }
+      });
+    });
+
+    // Validate publications
+    formData.publications.forEach((pub, index) => {
+      Object.keys(pub).forEach(field => {
+        const error = validateField(field, pub[field], 'publication');
+        if (error) {
+          errors[`publications.${index}.${field}`] = error;
+          hasErrors = true;
+        }
+      });
+    });
+
+    if (hasErrors) {
+      setErrors(errors);
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -1300,58 +1431,74 @@ export default function AcademicQualificationForm() {
                   {exam.exam_type === "GMAT" && (
                     <>
                       <div>
-                        <Label htmlFor={`exam-${index}-gmat_details.total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat-total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
                         <Input
-                          id={`exam-${index}-gmat_details.total_score`}
+                          id={`exam-${index}-gmat-total_score`}
                           name="total_score"
                           type="number"
-                          value={exam.gmat_details?.total_score || ''}
+                          value={exam.gmat_details.total_score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                          className={getFieldError(`qualifying_exams.${index}.gmat_details.total_score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.gmat_details.total_score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.total_score`)}</p>
+                        )}
                       </div>
-
                       <div>
-                        <Label htmlFor={`exam-${index}-gmat_details.verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat-verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
                         <Input
-                          id={`exam-${index}-gmat_details.verbal_score`}
+                          id={`exam-${index}-gmat-verbal_score`}
                           name="verbal_score"
                           type="number"
-                          value={exam.gmat_details?.verbal_score || ''}
+                          value={exam.gmat_details.verbal_score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                          className={getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`)}</p>
+                        )}
                       </div>
-
                       <div>
-                        <Label htmlFor={`exam-${index}-gmat_details.quantitative_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat-quantitative_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
                         <Input
-                          id={`exam-${index}-gmat_details.quantitative_score`}
+                          id={`exam-${index}-gmat-quantitative_score`}
                           name="quantitative_score"
                           type="number"
-                          value={exam.gmat_details?.quantitative_score || ''}
+                          value={exam.gmat_details.quantitative_score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                          className={getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`)}</p>
+                        )}
                       </div>
-
                       <div>
-                        <Label htmlFor={`exam-${index}-gmat_details.analytical_writing_score`} className="text-sm font-medium text-gray-700">Analytical Writing Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat-analytical_writing_score`} className="text-sm font-medium text-gray-700">Analytical Writing Score</Label>
                         <Input
-                          id={`exam-${index}-gmat_details.analytical_writing_score`}
+                          id={`exam-${index}-gmat-analytical_writing_score`}
                           name="analytical_writing_score"
                           type="number"
-                          value={exam.gmat_details?.analytical_writing_score || ''}
+                          value={exam.gmat_details.analytical_writing_score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                          className={getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`)}</p>
+                        )}
                       </div>
-
                       <div>
-                        <Label htmlFor={`exam-${index}-gmat_details.integrated_reasoning_score`} className="text-sm font-medium text-gray-700">Integrated Reasoning Score</Label>
+                        <Label htmlFor={`exam-${index}-gmat-integrated_reasoning_score`} className="text-sm font-medium text-gray-700">Integrated Reasoning Score</Label>
                         <Input
-                          id={`exam-${index}-gmat_details.integrated_reasoning_score`}
+                          id={`exam-${index}-gmat-integrated_reasoning_score`}
                           name="integrated_reasoning_score"
                           type="number"
-                          value={exam.gmat_details?.integrated_reasoning_score || ''}
+                          value={exam.gmat_details.integrated_reasoning_score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
+                          className={getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`)}</p>
+                        )}
                       </div>
                     </>
                   )}
@@ -1359,7 +1506,7 @@ export default function AcademicQualificationForm() {
                   {/* NET Details */}
                   {exam.exam_type === "NET" && (
                     <div>
-                      <Label htmlFor={`exam-${index}-net_details.type`} className="text-sm font-medium text-gray-700">NET Type</Label>
+                      <Label htmlFor={`exam-${index}-net-type`} className="text-sm font-medium text-gray-700">NET Type</Label>
                       <Select
                         value={exam.net_details?.type || ''}
                         onValueChange={(value) => handleExamDetailsChange({ target: { name: 'type', value } }, index, 'net_details')}
@@ -1372,6 +1519,9 @@ export default function AcademicQualificationForm() {
                           <SelectItem value="Without Fellowship">Without Fellowship</SelectItem>
                         </SelectContent>
                       </Select>
+                      {getFieldError(`qualifying_exams.${index}.net_details.type`) && (
+                        <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.net_details.type`)}</p>
+                      )}
                     </div>
                   )}
 
@@ -1379,47 +1529,59 @@ export default function AcademicQualificationForm() {
                   {exam.exam_type === "Others" && (
                     <>
                       <div>
-                          <Label htmlFor={`exam-${index}-other-exam_name`} className="text-sm font-medium text-gray-700">Exam Name</Label>
+                        <Label htmlFor={`exam-${index}-other-exam_name`} className="text-sm font-medium text-gray-700">Exam Name</Label>
                         <Input
                           id={`exam-${index}-other-exam_name`}
                           name="exam_name"
                           value={exam.other_details.exam_name}
                           onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
+                          className={getFieldError(`qualifying_exams.${index}.other_details.exam_name`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.other_details.exam_name`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.exam_name`)}</p>
+                        )}
                       </div>
                       <div>
-                          <Label htmlFor={`exam-${index}-other-score`} className="text-sm font-medium text-gray-700">Score</Label>
+                        <Label htmlFor={`exam-${index}-other-score`} className="text-sm font-medium text-gray-700">Score</Label>
                         <Input
                           id={`exam-${index}-other-score`}
                           name="score"
                           type="number"
                           value={exam.other_details.score}
                           onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
+                          className={getFieldError(`qualifying_exams.${index}.other_details.score`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.other_details.score`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.score`)}</p>
+                        )}
                       </div>
                       <div>
-                          <Label htmlFor={`exam-${index}-other-rank`} className="text-sm font-medium text-gray-700">Rank</Label>
+                        <Label htmlFor={`exam-${index}-other-rank`} className="text-sm font-medium text-gray-700">Rank</Label>
                         <Input
                           id={`exam-${index}-other-rank`}
                           name="rank"
                           type="number"
                           value={exam.other_details.rank}
                           onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
+                          className={getFieldError(`qualifying_exams.${index}.other_details.rank`) ? "border-red-500" : ""}
                         />
+                        {getFieldError(`qualifying_exams.${index}.other_details.rank`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.rank`)}</p>
+                        )}
                       </div>
                       <div>
-                          <Label htmlFor={`exam-${index}-other-qualifying_marks`} className="text-sm font-medium text-gray-700">Qualifying Marks</Label>
+                        <Label htmlFor={`exam-${index}-other-qualifying_marks`} className="text-sm font-medium text-gray-700">Qualifying Marks</Label>
                         <Input
                           id={`exam-${index}-other-qualifying_marks`}
                           name="qualifying_marks"
                           type="number"
                           value={exam.other_details.qualifying_marks}
                           onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
-                            className={getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) ? "border-red-500" : ""}
+                          className={getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) ? "border-red-500" : ""}
                         />
-                          {getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) && (
-                            <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`)}</p>
-                          )}
+                        {getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) && (
+                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`)}</p>
+                        )}
                       </div>
                     </>
                   )}
@@ -1457,264 +1619,297 @@ export default function AcademicQualificationForm() {
         {/* Experience */}
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium text-gray-700">Experience</h2>
-              <Button 
-                type="button" 
-                onClick={addExperience} 
-                variant="outline"
-                className="text-sm px-3 py-1"
-              >
+            <h2 className="text-lg font-medium text-gray-700">Experience</h2>
+            <Button 
+              type="button" 
+              onClick={addExperience} 
+              variant="outline"
+              className="text-sm px-3 py-1"
+            >
               Add Experience
             </Button>
           </div>
 
           {formData.experience.map((experience, index) => (
-              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={() => deleteExperience(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
-                    <Select
-                      value={experience.type}
-                      onValueChange={(value) => handleExperienceChange(
-                        { target: { name: 'type', value } },
-                        index
-                      )}
-                    >
-                        <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Industry">Industry</SelectItem>
-                        <SelectItem value="Academia">Academia</SelectItem>
-                        <SelectItem value="Research">Research</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organisation</Label>
-                    <Input
-                      id={`experience-${index}-organisation`}
-                      name="organisation"
-                      value={experience.organisation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-place`} className="text-sm font-medium text-gray-700">Place</Label>
-                    <Input
-                      id={`experience-${index}-place`}
-                      name="place"
-                      value={experience.place}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Period From</Label>
-                    <Input
-                      id={`experience-${index}-period_from`}
-                      name="period_from"
-                      type="date"
-                      value={formatDateForInput(experience.period_from)}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">Period To</Label>
-                    <Input
-                      id={`experience-${index}-period_to`}
-                      name="period_to"
-                      type="date"
-                      value={formatDateForInput(experience.period_to)}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-monthly_compensation`} className="text-sm font-medium text-gray-700">Monthly Compensation</Label>
-                    <Input
-                      id={`experience-${index}-monthly_compensation`}
-                      name="monthly_compensation"
-                      type="number"
-                      value={experience.monthly_compensation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
-                    <Input
-                      id={`experience-${index}-designation`}
-                      name="designation"
-                      value={experience.designation}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`experience-${index}-nature_of_work`} className="text-sm font-medium text-gray-700">Nature of Work</Label>
-                    <Input
-                      id={`experience-${index}-nature_of_work`}
-                      name="nature_of_work"
-                      value={experience.nature_of_work}
-                      onChange={(e) => handleExperienceChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                      <Label className="text-sm font-medium text-gray-700">Experience Certificate Upload</Label>
-                      <div className="text-xs text-gray-500 mb-2">
-                        Please upload only PDF files (max size: 5MB)
-                      </div>
-                    <Input
-                      type="file"
-                        accept=".pdf"
-                      onChange={(e) => handleExperienceFileUpload(e, index)}
-                      disabled={isUploading}
-                        className="h-9 text-sm"
-                    />
-                    {experience.experience_certificate_url && (
-                      <div className="mt-2">
-                          <object
-                            data={`${experience.experience_certificate_url}#toolbar=0&navpanes=0`}
-                            type="application/pdf"
-                            className="w-full h-[400px] border border-gray-200 rounded"
-                          >
-                            <p className="text-sm text-gray-600">Unable to display PDF file. <a href={experience.experience_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                          </object>
-                      </div>
+            <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={() => deleteExperience(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                  <Select
+                    value={experience.type}
+                    onValueChange={(value) => handleExperienceChange(
+                      { target: { name: 'type', value } },
+                      index
                     )}
+                  >
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Industry">Industry</SelectItem>
+                      <SelectItem value="Academia">Academia</SelectItem>
+                      <SelectItem value="Research">Research</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {getFieldError(`experience.${index}.type`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.type`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organisation</Label>
+                  <Input
+                    id={`experience-${index}-organisation`}
+                    name="organisation"
+                    value={experience.organisation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.organisation`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.organisation`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.organisation`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-place`} className="text-sm font-medium text-gray-700">Place</Label>
+                  <Input
+                    id={`experience-${index}-place`}
+                    name="place"
+                    value={experience.place}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.place`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.place`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.place`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Period From</Label>
+                  <Input
+                    id={`experience-${index}-period_from`}
+                    name="period_from"
+                    type="date"
+                    value={formatDateForInput(experience.period_from)}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.period_from`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.period_from`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.period_from`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">Period To</Label>
+                  <Input
+                    id={`experience-${index}-period_to`}
+                    name="period_to"
+                    type="date"
+                    value={formatDateForInput(experience.period_to)}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-monthly_compensation`} className="text-sm font-medium text-gray-700">Monthly Compensation</Label>
+                  <Input
+                    id={`experience-${index}-monthly_compensation`}
+                    name="monthly_compensation"
+                    type="number"
+                    value={experience.monthly_compensation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.monthly_compensation`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.monthly_compensation`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.monthly_compensation`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
+                  <Input
+                    id={`experience-${index}-designation`}
+                    name="designation"
+                    value={experience.designation}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.designation`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.designation`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.designation`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`experience-${index}-nature_of_work`} className="text-sm font-medium text-gray-700">Nature of Work</Label>
+                  <Input
+                    id={`experience-${index}-nature_of_work`}
+                    name="nature_of_work"
+                    value={experience.nature_of_work}
+                    onChange={(e) => handleExperienceChange(e, index)}
+                    className={getFieldError(`experience.${index}.nature_of_work`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`experience.${index}.nature_of_work`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.nature_of_work`)}</p>
+                  )}
+                </div>
+
+                <div className="col-span-2">
+                  <Label className="text-sm font-medium text-gray-700">Experience Certificate Upload</Label>
+                  <div className="text-xs text-gray-500 mb-2">
+                    Please upload only PDF files (max size: 5MB)
                   </div>
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => handleExperienceFileUpload(e, index)}
+                    disabled={isUploading}
+                    className="h-9 text-sm"
+                  />
+                  {experience.experience_certificate_url && (
+                    <div className="mt-2">
+                      <object
+                        data={`${experience.experience_certificate_url}#toolbar=0&navpanes=0`}
+                        type="application/pdf"
+                        className="w-full h-[400px] border border-gray-200 rounded"
+                      >
+                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={experience.experience_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                      </object>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
 
         {/* Publications */}
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium text-gray-700">Publications</h2>
-              <Button 
-                type="button" 
-                onClick={addPublication} 
-                variant="outline"
-                className="text-sm px-3 py-1"
-              >
+            <h2 className="text-lg font-medium text-gray-700">Publications</h2>
+            <Button 
+              type="button" 
+              onClick={addPublication} 
+              variant="outline"
+              className="text-sm px-3 py-1"
+            >
               Add Publication
             </Button>
           </div>
 
           {formData.publications.map((publication, index) => (
-              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={() => deletePublication(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
-                    <Select
-                      value={publication.type}
-                      onValueChange={(value) => handlePublicationChange(
-                        { target: { name: 'type', value } },
-                        index
-                      )}
-                    >
-                        <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Journal">Journal</SelectItem>
-                        <SelectItem value="Conference">Conference</SelectItem>
-                        <SelectItem value="Book">Book</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`publication-${index}-paper_title`} className="text-sm font-medium text-gray-700">Paper Title</Label>
-                    <Input
-                      id={`publication-${index}-paper_title`}
-                      name="paper_title"
-                      value={publication.paper_title}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`publication-${index}-affiliation`} className="text-sm font-medium text-gray-700">Affiliation</Label>
-                    <Input
-                      id={`publication-${index}-affiliation`}
-                      name="affiliation"
-                      value={publication.affiliation}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                      <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
-                    <Input
-                      id={`publication-${index}-acceptance_year`}
-                      name="acceptance_year"
-                      type="number"
-                      value={publication.acceptance_year}
-                      onChange={(e) => handlePublicationChange(e, index)}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                      <Label className="text-sm font-medium text-gray-700">Document Upload</Label>
-                      <div className="text-xs text-gray-500 mb-2">
-                        Please upload only PDF files (max size: 5MB)
-                      </div>
-                    <Input
-                      type="file"
-                        accept=".pdf"
-                      onChange={(e) => handlePublicationFileUpload(e, index)}
-                      disabled={isUploading}
-                        className="h-9 text-sm"
-                    />
-                    {publication.document_url && (
-                      <div className="mt-2">
-                          <object
-                            data={`${publication.document_url}#toolbar=0&navpanes=0`}
-                            type="application/pdf"
-                            className="w-full h-[400px] border border-gray-200 rounded"
-                          >
-                            <p className="text-sm text-gray-600">Unable to display PDF file. <a href={publication.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                          </object>
-                      </div>
+            <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={() => deletePublication(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                  <Select
+                    value={publication.type}
+                    onValueChange={(value) => handlePublicationChange(
+                      { target: { name: 'type', value } },
+                      index
                     )}
+                  >
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Journal">Journal</SelectItem>
+                      <SelectItem value="Conference">Conference</SelectItem>
+                      <SelectItem value="Book">Book</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {getFieldError(`publications.${index}.type`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.type`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`publication-${index}-paper_title`} className="text-sm font-medium text-gray-700">Paper Title</Label>
+                  <Input
+                    id={`publication-${index}-paper_title`}
+                    name="paper_title"
+                    value={publication.paper_title}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    className={getFieldError(`publications.${index}.paper_title`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`publications.${index}.paper_title`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.paper_title`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`publication-${index}-affiliation`} className="text-sm font-medium text-gray-700">Affiliation</Label>
+                  <Input
+                    id={`publication-${index}-affiliation`}
+                    name="affiliation"
+                    value={publication.affiliation}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    className={getFieldError(`publications.${index}.affiliation`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`publications.${index}.affiliation`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.affiliation`)}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
+                  <Input
+                    id={`publication-${index}-acceptance_year`}
+                    name="acceptance_year"
+                    type="number"
+                    value={publication.acceptance_year}
+                    onChange={(e) => handlePublicationChange(e, index)}
+                    className={getFieldError(`publications.${index}.acceptance_year`) ? "border-red-500" : ""}
+                  />
+                  {getFieldError(`publications.${index}.acceptance_year`) && (
+                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.acceptance_year`)}</p>
+                  )}
+                </div>
+
+                <div className="col-span-2">
+                  <Label className="text-sm font-medium text-gray-700">Document Upload</Label>
+                  <div className="text-xs text-gray-500 mb-2">
+                    Please upload only PDF files (max size: 5MB)
                   </div>
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => handlePublicationFileUpload(e, index)}
+                    disabled={isUploading}
+                    className="h-9 text-sm"
+                  />
+                  {publication.document_url && (
+                    <div className="mt-2">
+                      <object
+                        data={`${publication.document_url}#toolbar=0&navpanes=0`}
+                        type="application/pdf"
+                        className="w-full h-[400px] border border-gray-200 rounded"
+                      >
+                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={publication.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                      </object>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
 
         <div className="mt-6">
@@ -1722,8 +1917,8 @@ export default function AcademicQualificationForm() {
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit'}
           </Button>
         </div>
-        </form>
-      </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }
