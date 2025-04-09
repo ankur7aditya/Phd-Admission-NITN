@@ -36,4 +36,20 @@ router.post('/upload-demand-draft',
   personalController.uploadDemandDraft
 );
 
+// Upload transaction screenshot
+router.post('/upload-transaction-screenshot', 
+  verifyJWT,
+  imageUpload.single('document'),
+  personalController.uploadTransactionScreenshot
+);
+
+// Update transaction details
+router.put('/update-transaction-details', verifyJWT, personalController.updateTransactionDetails);
+
+// Update declaration
+router.put('/update-declaration', verifyJWT, personalController.updateDeclaration);
+
+// Update enclosures
+router.put('/update-enclosures', verifyJWT, personalController.updateEnclosures);
+
 module.exports = router;

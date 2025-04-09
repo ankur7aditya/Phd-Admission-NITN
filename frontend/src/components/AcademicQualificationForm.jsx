@@ -190,82 +190,86 @@ const scrollToError = (fieldId) => {
 export default function AcademicQualificationForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    qualifications: [
-      {
-        standard: "UG",
-        degree_name: "B.Tech",
-        university: "National Institute of Technology",
-        year_of_completion: new Date().getFullYear(),
-        marks_type: "CGPA",
-        marks_obtained: "8.5",
-        max_cgpa: 10,
-        branch: "Computer Science",
-        program_duration_months: "48",
-        document_url: "",
-      }
-    ],
-    qualifying_exams: [
-      {
-        exam_type: "GATE",
-        registration_no: "GATE2024XXXXX",
-        year_of_qualification: new Date().getFullYear(),
-        cat_details: {
-          total_score: "",
-          total_percentile: "",
-          quant_score: "",
-          quant_percentile: "",
-          di_lr_score: "",
-          di_lr_percentile: "",
-          verbal_score: "",
-          verbal_percentile: "",
+    qualifications: [{
+      standard: '',
+      degree_name: '',
+      university: '',
+      year_of_completion: '',
+      marks_obtained: '',
+      marks_type: '',
+      branch: '',
+      program_duration_months: '',
+      document_url: ''
+    }],
+    qualifying_exams: [{
+      exam_type: '',
+      registration_no: '',
+      year_of_qualification: '',
+      net_details: {
+        type: '',
+        subject: '',
+        score: '',
+        rank: ''
         },
         gate_details: {
-          discipline: "Computer Science",
-          gate_score: "750",
-          gate_rank: "1000",
-          marks_out_of_100: "85",
-          qualifying_marks: "25",
+        marks_out_of_100: '',
+        qualifying_marks: '',
+        gate_rank: ''
+      },
+      cat_details: {
+        total_percentile: '',
+        quant_percentile: '',
+        di_lr_percentile: '',
+        verbal_percentile: ''
         },
         gmat_details: {
-          total_score: "",
-          quant_score: "",
-          verbal_score: "",
-          awa_score: "",
-          ir_score: "",
-        },
-        net_details: {
-          type: "Without Fellowship"
-        },
-        other_details: {
-          exam_name: "",
-          score: "",
-          rank: "",
-          qualifying_marks: "",
-        }
-      }
-    ],
-    experience: [
-      {
-        type: "Industry",
-        organisation: "Tech Company",
-        place: "Bangalore",
-        period_from: new Date().toISOString().split('T')[0],
-        period_to: "",
-        monthly_compensation: "50000",
-        designation: "Software Engineer",
-        nature_of_work: "Full Stack Development",
-        experience_certificate_url: ""
-      }
-    ],
-    publications: [
-      {
-        type: "Journal",
-        paper_title: "Sample Research Paper",
-        affiliation: "National Institute of Technology",
-        acceptance_year: new Date().getFullYear(),
-        document_url: ""
-      }
-    ]
+        total_score: '',
+        verbal_score: '',
+        quantitative_score: '',
+        analytical_writing_score: '',
+        integrated_reasoning_score: ''
+      },
+      document_url: ''
+    }],
+    experience: [{
+      type: '',
+      organisation: '',
+      place: '',
+      period_from: '',
+      period_to: '',
+      designation: '',
+      monthly_compensation: '',
+      nature_of_work: '',
+      experience_certificate_url: ''
+    }],
+    publications: [{
+      type: '',
+      paper_title: '',
+      affiliation: '',
+      acceptance_year: '',
+      document_url: ''
+    }],
+    bachelors_branch: '',
+    bachelors_aggregate: '',
+    bachelors_class: '',
+    bachelors_percentage: '',
+    bachelors_sem1: '',
+    bachelors_sem2: '',
+    bachelors_sem3: '',
+    bachelors_sem4: '',
+    bachelors_sem5: '',
+    bachelors_sem6: '',
+    bachelors_sem7: '',
+    bachelors_sem8: '',
+    masters_branch: '',
+    masters_aggregate: '',
+    masters_class: '',
+    masters_percentage: '',
+    masters_sem1: '',
+    masters_sem2: '',
+    masters_sem3: '',
+    masters_sem4: '',
+    other_degree: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -1204,416 +1208,417 @@ export default function AcademicQualificationForm() {
             ))}
         </div>
 
-        {/* Qualifying Exams */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium text-gray-700">Qualifying Exams</h2>
-              <Button 
-                type="button" 
-                onClick={addQualifyingExam} 
-                variant="outline"
-                className="text-sm px-3 py-1"
-              >
-              Add Exam
-            </Button>
+        {/* Examination Results */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Examination Results</h2>
+          
+          {/* Bachelor's Degree */}
+          <div className="space-y-4">
+            <h3 className="font-medium">a) Bachelor's Degree: B.E./B.Tech./B.Sc./Others</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="bachelors_branch">Branch</Label>
+                    <Input
+                  id="bachelors_branch"
+                  name="bachelors_branch"
+                  value={formData.bachelors_branch}
+                  onChange={handleChange}
+                />
+              </div>
+                  </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full border">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2">Semester</th>
+                    <th className="border p-2">I</th>
+                    <th className="border p-2">II</th>
+                    <th className="border p-2">III</th>
+                    <th className="border p-2">IV</th>
+                    <th className="border p-2">V</th>
+                    <th className="border p-2">VI</th>
+                    <th className="border p-2">VII</th>
+                    <th className="border p-2">VIII</th>
+                    <th className="border p-2">Aggregate/CGPA</th>
+                    <th className="border p-2">Class</th>
+                    <th className="border p-2">% of Marks/GPA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border p-2">Marks/CGPA</td>
+                    <td className="border p-2">
+                    <Input
+                        type="text"
+                        name="bachelors_sem1"
+                        value={formData.bachelors_sem1}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem2"
+                        value={formData.bachelors_sem2}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem3"
+                        value={formData.bachelors_sem3}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem4"
+                        value={formData.bachelors_sem4}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem5"
+                        value={formData.bachelors_sem5}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem6"
+                        value={formData.bachelors_sem6}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem7"
+                        value={formData.bachelors_sem7}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_sem8"
+                        value={formData.bachelors_sem8}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="bachelors_aggregate"
+                        value={formData.bachelors_aggregate}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                      <Input
+                        type="text"
+                        name="bachelors_class"
+                        value={formData.bachelors_class}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                      <Input
+                        type="text"
+                        name="bachelors_percentage"
+                        value={formData.bachelors_percentage}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+                      </div>
           </div>
 
-          {formData.qualifying_exams.map((exam, index) => (
-              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={() => deleteQualifyingExam(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <Label htmlFor={`exam-${index}-type`} className="text-sm font-medium text-gray-700">Exam Type</Label>
-                    <Select
-                      value={exam.exam_type}
-                      onValueChange={(value) => handleExamChange(
-                        { target: { name: 'exam_type', value } },
-                        index
-                      )}
-                    >
-                        <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select exam type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CAT">CAT</SelectItem>
-                        <SelectItem value="GATE">GATE</SelectItem>
-                        <SelectItem value="GMAT">GMAT</SelectItem>
-                        <SelectItem value="NET">NET</SelectItem>
-                        <SelectItem value="Others">Others</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {/* Master's Degree */}
+          <div className="space-y-4 mt-6">
+            <h3 className="font-medium">b) Master's Degree: M.E./M.Tech./M.S./M.Sc./Others</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="masters_branch">Branch</Label>
+                        <Input
+                  id="masters_branch"
+                  name="masters_branch"
+                  value={formData.masters_branch}
+                  onChange={handleChange}
+                        />
+                      </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full border">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2">Semester</th>
+                    <th className="border p-2">I</th>
+                    <th className="border p-2">II</th>
+                    <th className="border p-2">III</th>
+                    <th className="border p-2">IV</th>
+                    <th className="border p-2">Aggregate/CGPA</th>
+                    <th className="border p-2">Class</th>
+                    <th className="border p-2">% of Marks/GPA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border p-2">Marks/CGPA</td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_sem1"
+                        value={formData.masters_sem1}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_sem2"
+                        value={formData.masters_sem2}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_sem3"
+                        value={formData.masters_sem3}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_sem4"
+                        value={formData.masters_sem4}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_aggregate"
+                        value={formData.masters_aggregate}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                        <Input
+                        type="text"
+                        name="masters_class"
+                        value={formData.masters_class}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border p-2">
+                      <Input
+                        type="text"
+                        name="masters_percentage"
+                        value={formData.masters_percentage}
+                        onChange={handleChange}
+                        className="w-full"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+                      </div>
+          </div>
 
-                  <div>
-                      <Label htmlFor={`exam-${index}-registration_no`} className="text-sm font-medium text-gray-700">Registration Number</Label>
-                    <Input
-                      id={`exam-${index}-registration_no`}
-                      name="registration_no"
-                      value={exam.registration_no}
-                      onChange={(e) => handleExamChange(e, index)}
-                      required
-                    />
-                  </div>
+          {/* Other Degree/Diploma */}
+          <div className="space-y-4 mt-6">
+            <h3 className="font-medium">c) Other degree/diploma programme, if any:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="other_degree">Degree/Diploma Details</Label>
+                        <Input
+                  id="other_degree"
+                  name="other_degree"
+                  value={formData.other_degree}
+                  onChange={handleChange}
+                />
+                      </div>
+            </div>
+          </div>
+        </div>
 
-                  <div>
-                      <Label htmlFor={`exam-${index}-year_of_qualification`} className="text-sm font-medium text-gray-700">Year of Qualification</Label>
-                    <Input
-                      id={`exam-${index}-year_of_qualification`}
-                      name="year_of_qualification"
-                      type="number"
-                      value={exam.year_of_qualification}
-                      onChange={(e) => handleExamChange(e, index)}
-                        className={getFieldError(`qualifying_exams.${index}.year_of_qualification`) ? "border-red-500" : ""}
-                    />
-                      {getFieldError(`qualifying_exams.${index}.year_of_qualification`) && (
-                        <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.year_of_qualification`)}</p>
-                      )}
-                  </div>
-
-                  {/* CAT Details */}
-                  {exam.exam_type === "CAT" && (
-                    <>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
+        {/* Additional Qualifications */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Additional Qualifications</h2>
+          
+          {/* GATE Details */}
+          <div className="space-y-4">
+            <h3 className="font-medium">1. GATE</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gate_score">Score</Label>
                         <Input
-                          id={`exam-${index}-cat-total_score`}
-                          name="total_score"
+                  id="gate_score"
+                  name="gate_score"
+                  value={formData.gate_score}
+                  onChange={handleChange}
+                />
+                      </div>
+              <div className="space-y-2">
+                <Label htmlFor="gate_qualifying_year">Qualifying Year</Label>
+                        <Input
+                  id="gate_qualifying_year"
+                  name="gate_qualifying_year"
                           type="number"
-                          value={exam.cat_details.total_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
+                  value={formData.gate_qualifying_year}
+                  onChange={handleChange}
                         />
                       </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-total_percentile`} className="text-sm font-medium text-gray-700">Total Percentile</Label>
-                        <Input
-                          id={`exam-${index}-cat-total_percentile`}
-                          name="total_percentile"
-                          type="number"
-                          value={exam.cat_details.total_percentile}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-quant_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
-                        <Input
-                          id={`exam-${index}-cat-quant_score`}
-                          name="quant_score"
-                          type="number"
-                          value={exam.cat_details.quant_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-quant_percentile`} className="text-sm font-medium text-gray-700">Quantitative Percentile</Label>
-                        <Input
-                          id={`exam-${index}-cat-quant_percentile`}
-                          name="quant_percentile"
-                          type="number"
-                          value={exam.cat_details.quant_percentile}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-di_lr_score`} className="text-sm font-medium text-gray-700">DI/LR Score</Label>
-                        <Input
-                          id={`exam-${index}-cat-di_lr_score`}
-                          name="di_lr_score"
-                          type="number"
-                          value={exam.cat_details.di_lr_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-di_lr_percentile`} className="text-sm font-medium text-gray-700">DI/LR Percentile</Label>
-                        <Input
-                          id={`exam-${index}-cat-di_lr_percentile`}
-                          name="di_lr_percentile"
-                          type="number"
-                          value={exam.cat_details.di_lr_percentile}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
-                        <Input
-                          id={`exam-${index}-cat-verbal_score`}
-                          name="verbal_score"
-                          type="number"
-                          value={exam.cat_details.verbal_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-cat-verbal_percentile`} className="text-sm font-medium text-gray-700">Verbal Percentile</Label>
-                        <Input
-                          id={`exam-${index}-cat-verbal_percentile`}
-                          name="verbal_percentile"
-                          type="number"
-                          value={exam.cat_details.verbal_percentile}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'cat_details')}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* GATE Details */}
-                  {exam.exam_type === "GATE" && (
-                    <>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gate-discipline`} className="text-sm font-medium text-gray-700">Discipline</Label>
-                        <Input
-                          id={`exam-${index}-gate-discipline`}
-                          name="discipline"
-                          value={exam.gate_details.discipline}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gate_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gate-gate_score`} className="text-sm font-medium text-gray-700">GATE Score</Label>
-                        <Input
-                          id={`exam-${index}-gate-gate_score`}
-                          name="gate_score"
-                          type="number"
-                          value={exam.gate_details.gate_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gate_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gate-gate_rank`} className="text-sm font-medium text-gray-700">GATE Rank</Label>
-                        <Input
-                          id={`exam-${index}-gate-gate_rank`}
-                          name="gate_rank"
-                          type="number"
-                          value={exam.gate_details.gate_rank}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gate_details')}
-                        />
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gate-marks_out_of_100`} className="text-sm font-medium text-gray-700">Marks out of 100</Label>
-                        <Input
-                          id={`exam-${index}-gate-marks_out_of_100`}
-                          name="marks_out_of_100"
-                          type="number"
-                          value={exam.gate_details.marks_out_of_100}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gate_details')}
-                            className={getFieldError(`qualifying_exams.${index}.gate_details.marks_out_of_100`) ? "border-red-500" : ""}
-                        />
-                          {getFieldError(`qualifying_exams.${index}.gate_details.marks_out_of_100`) && (
-                            <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gate_details.marks_out_of_100`)}</p>
-                          )}
-                      </div>
-                      <div>
-                          <Label htmlFor={`exam-${index}-gate-qualifying_marks`} className="text-sm font-medium text-gray-700">Qualifying Marks</Label>
-                        <Input
-                          id={`exam-${index}-gate-qualifying_marks`}
-                          name="qualifying_marks"
-                          type="number"
-                          value={exam.gate_details.qualifying_marks}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gate_details')}
-                            className={getFieldError(`qualifying_exams.${index}.gate_details.qualifying_marks`) ? "border-red-500" : ""}
-                        />
-                          {getFieldError(`qualifying_exams.${index}.gate_details.qualifying_marks`) && (
-                            <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gate_details.qualifying_marks`)}</p>
-                          )}
-                      </div>
-                    </>
-                  )}
-
-                  {/* GMAT Details */}
-                  {exam.exam_type === "GMAT" && (
-                    <>
-                      <div>
-                        <Label htmlFor={`exam-${index}-gmat-total_score`} className="text-sm font-medium text-gray-700">Total Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-total_score`}
-                          name="total_score"
-                          type="number"
-                          value={exam.gmat_details.total_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                          className={getFieldError(`qualifying_exams.${index}.gmat_details.total_score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.gmat_details.total_score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.total_score`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-gmat-verbal_score`} className="text-sm font-medium text-gray-700">Verbal Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-verbal_score`}
-                          name="verbal_score"
-                          type="number"
-                          value={exam.gmat_details.verbal_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                          className={getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.verbal_score`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-gmat-quantitative_score`} className="text-sm font-medium text-gray-700">Quantitative Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-quantitative_score`}
-                          name="quantitative_score"
-                          type="number"
-                          value={exam.gmat_details.quantitative_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                          className={getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.quantitative_score`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-gmat-analytical_writing_score`} className="text-sm font-medium text-gray-700">Analytical Writing Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-analytical_writing_score`}
-                          name="analytical_writing_score"
-                          type="number"
-                          value={exam.gmat_details.analytical_writing_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                          className={getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.analytical_writing_score`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-gmat-integrated_reasoning_score`} className="text-sm font-medium text-gray-700">Integrated Reasoning Score</Label>
-                        <Input
-                          id={`exam-${index}-gmat-integrated_reasoning_score`}
-                          name="integrated_reasoning_score"
-                          type="number"
-                          value={exam.gmat_details.integrated_reasoning_score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'gmat_details')}
-                          className={getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.gmat_details.integrated_reasoning_score`)}</p>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  {/* NET Details */}
-                  {exam.exam_type === "NET" && (
-                    <div>
-                      <Label htmlFor={`exam-${index}-net-type`} className="text-sm font-medium text-gray-700">NET Type</Label>
-                      <Select
-                        value={exam.net_details?.type || ''}
-                        onValueChange={(value) => handleExamDetailsChange({ target: { name: 'type', value } }, index, 'net_details')}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select NET type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="With Fellowship">With Fellowship</SelectItem>
-                          <SelectItem value="Without Fellowship">Without Fellowship</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {getFieldError(`qualifying_exams.${index}.net_details.type`) && (
-                        <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.net_details.type`)}</p>
-                      )}
                     </div>
-                  )}
+          </div>
 
-                  {/* Other Details */}
-                  {exam.exam_type === "Others" && (
-                    <>
-                      <div>
-                        <Label htmlFor={`exam-${index}-other-exam_name`} className="text-sm font-medium text-gray-700">Exam Name</Label>
-                        <Input
-                          id={`exam-${index}-other-exam_name`}
-                          name="exam_name"
-                          value={exam.other_details.exam_name}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
-                          className={getFieldError(`qualifying_exams.${index}.other_details.exam_name`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.other_details.exam_name`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.exam_name`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-other-score`} className="text-sm font-medium text-gray-700">Score</Label>
-                        <Input
-                          id={`exam-${index}-other-score`}
-                          name="score"
-                          type="number"
-                          value={exam.other_details.score}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
-                          className={getFieldError(`qualifying_exams.${index}.other_details.score`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.other_details.score`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.score`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-other-rank`} className="text-sm font-medium text-gray-700">Rank</Label>
-                        <Input
-                          id={`exam-${index}-other-rank`}
-                          name="rank"
-                          type="number"
-                          value={exam.other_details.rank}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
-                          className={getFieldError(`qualifying_exams.${index}.other_details.rank`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.other_details.rank`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.rank`)}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor={`exam-${index}-other-qualifying_marks`} className="text-sm font-medium text-gray-700">Qualifying Marks</Label>
-                        <Input
-                          id={`exam-${index}-other-qualifying_marks`}
-                          name="qualifying_marks"
-                          type="number"
-                          value={exam.other_details.qualifying_marks}
-                          onChange={(e) => handleExamDetailsChange(e, index, 'other_details')}
-                          className={getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) ? "border-red-500" : ""}
-                        />
-                        {getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`) && (
-                          <p className="text-sm text-red-500 mt-1">{getFieldError(`qualifying_exams.${index}.other_details.qualifying_marks`)}</p>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  {/* Exam Certificate Upload */}
-                  <div className="col-span-2">
-                    <Label className="text-sm font-medium text-gray-700">Exam Certificate Upload</Label>
-                    <div className="text-xs text-gray-500 mb-2">
-                      Please upload only PDF files (max size: 5MB)
-                    </div>
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleExamCertificateUpload(e, index)}
-                      disabled={isUploading}
-                      className="h-9 text-sm"
+          {/* NET/CSIR/UGC/JRF/Lectureship/NBHM/Others */}
+          <div className="space-y-4 mt-6">
+            <h3 className="font-medium">2. NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</h3>
+            <div className="space-y-4">
+              <div className="flex flex-col space-y-2">
+                <Label>Select Examination</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="net"
+                      name="net_exam"
+                      value="net"
+                      checked={formData.net_exam === "net"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
-                    {exam.exam_certificate_url && (
-                      <div className="mt-2">
-                        <object
-                          data={`${exam.exam_certificate_url}#toolbar=0&navpanes=0`}
-                          type="application/pdf"
-                          className="w-full h-[400px] border border-gray-200 rounded"
-                        >
-                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={exam.exam_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                        </object>
+                    <Label htmlFor="net">NET</Label>
                       </div>
-                    )}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="csir"
+                      name="net_exam"
+                      value="csir"
+                      checked={formData.net_exam === "csir"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="csir">CSIR</Label>
+                      </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="ugc"
+                      name="net_exam"
+                      value="ugc"
+                      checked={formData.net_exam === "ugc"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="ugc">UGC</Label>
+                      </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="jrf"
+                      name="net_exam"
+                      value="jrf"
+                      checked={formData.net_exam === "jrf"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="jrf">JRF</Label>
+                      </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="lectureship"
+                      name="net_exam"
+                      value="lectureship"
+                      checked={formData.net_exam === "lectureship"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="lectureship">Lectureship</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="nbhm"
+                      name="net_exam"
+                      value="nbhm"
+                      checked={formData.net_exam === "nbhm"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="nbhm">NBHM</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="others"
+                      name="net_exam"
+                      value="others"
+                      checked={formData.net_exam === "others"}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="others">Others</Label>
                   </div>
                 </div>
               </div>
-            ))}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="exam_date">Date of Exam</Label>
+                  <Input
+                    id="exam_date"
+                    name="exam_date"
+                    type="date"
+                    value={formData.exam_date}
+                    onChange={handleChange}
+                  />
+                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="qualifying_year">Qualifying Year</Label>
+                    <Input
+                    id="qualifying_year"
+                    name="qualifying_year"
+                    type="number"
+                    value={formData.qualifying_year}
+                    onChange={handleChange}
+                  />
+                      </div>
+                  </div>
+                </div>
+              </div>
         </div>
 
         {/* Experience */}
@@ -1789,6 +1794,117 @@ export default function AcademicQualificationForm() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Project Titles */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Title of UG/PG Project</h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ug_project_title">UG Project Title</Label>
+              <Input
+                id="ug_project_title"
+                name="ug_project_title"
+                value={formData.ug_project_title}
+                onChange={handleChange}
+                placeholder="Enter your UG project title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pg_project_title">PG Project Title</Label>
+              <Input
+                id="pg_project_title"
+                name="pg_project_title"
+                value={formData.pg_project_title}
+                onChange={handleChange}
+                placeholder="Enter your PG project title"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Interested Area of Research */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Interested Area of Research</h2>
+          
+          {/* Department Selection */}
+          <div className="space-y-4">
+            <Label>Select Department</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="research_cse"
+                  name="research_department"
+                  value="cse"
+                  checked={formData.research_department === "cse"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="research_cse">Computer Science & Engineering</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="research_ece"
+                  name="research_department"
+                  value="ece"
+                  checked={formData.research_department === "ece"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="research_ece">Electronics & Communication Engineering</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="research_ee"
+                  name="research_department"
+                  value="ee"
+                  checked={formData.research_department === "ee"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="research_ee">Electrical Engineering</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="research_me"
+                  name="research_department"
+                  value="me"
+                  checked={formData.research_department === "me"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="research_me">Mechanical Engineering</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="research_eie"
+                  name="research_department"
+                  value="eie"
+                  checked={formData.research_department === "eie"}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="research_eie">Electronics and Instrumentation Engineering</Label>
+              </div>
+            </div>
+          </div>
+
+          {/* Specialization/Area of Research */}
+          <div className="space-y-2">
+            <Label htmlFor="research_area">Specialization/Area of Research</Label>
+            <Input
+              id="research_area"
+              name="research_area"
+              value={formData.research_area}
+              onChange={handleChange}
+              placeholder="Enter your area of research interest"
+            />
+          </div>
         </div>
 
         {/* Publications */}

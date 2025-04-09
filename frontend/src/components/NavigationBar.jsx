@@ -18,7 +18,9 @@ export default function NavigationBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-800">PhD Admission Portal</h1>
+            <h1 className="text-gray-800 text-center text-lg md:text-xl lg:text-2xl font-bold mt-2">
+              APPLICATION FORM FOR ADMISSION TO Ph.D. PROGRAMME (Visvesvaraya Ph.D. Scheme for Electronics and IT: Phase-II)(Jul -Dec 2025)
+            </h1>
           </div>
           <div className="flex items-center">
             <Button

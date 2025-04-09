@@ -10,7 +10,10 @@ const Label = React.forwardRef(({ className, ...props }, ref) => (
       className
     )}
     {...props}
-  />
+  >
+    {props.children}
+    <span className="text-red-500 ml-1">*</span>
+  </LabelPrimitive.Root>
 ));
 Label.displayName = LabelPrimitive.Root.displayName;
 

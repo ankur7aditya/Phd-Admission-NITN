@@ -1,311 +1,191 @@
 const mongoose = require('mongoose');
 
-const AcademicDetailsSchema = new mongoose.Schema({
-  userid: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
-    required: [true, "User ID is required"] 
-  },
-
-  qualifications: [
-    {
-      standard: { 
-        type: String, 
-        required: [true, "Standard is required"],
-        enum: {
-          values: ["10th", "12th", "UG", "PG", "PhD"],
-          message: "{VALUE} is not a valid standard"
-        }
-      },
-      degree_name: { 
-        type: String, 
-        required: [true, "Degree name is required"],
-        trim: true
-      },
-      university: { 
-        type: String, 
-        required: [true, "University/Board name is required"],
-        trim: true
-      },
-      year_of_completion: { 
-        type: Number, 
-        required: [true, "Year of completion is required"],
-        min: [1900, "Invalid year"],
-        max: [new Date().getFullYear(), "Year cannot be in the future"]
-      },
-      marks_type: { 
-        type: String, 
-        enum: {
-          values: ["Percentage", "CGPA"],
-          message: "{VALUE} is not a valid marks type"
-        },
-        required: [true, "Marks type is required"]
-      },
-      marks_obtained: { 
-        type: Number, 
-        required: [true, "Marks obtained is required"],
-        min: [0, "Marks cannot be negative"],
-        validate: {
-          validator: function(v) {
-            if (this.marks_type === "Percentage") {
-              return v <= 100;
-            } else if (this.marks_type === "CGPA") {
-              return v <= this.max_cgpa;
-            }
-            return true;
-          },
-          message: "Marks exceed maximum value"
-        }
-      },
-      max_cgpa: { 
-        type: Number, 
-        default: 10,
-        validate: {
-          validator: function(v) {
-            return v > 0;
-          },
-          message: "Maximum CGPA must be greater than 0"
-        }
-      },
-      branch: { 
+const QualificationSchema = new mongoose.Schema({
+    standard: {
         type: String,
-        trim: true
-      },
-      program_duration_months: { 
-        type: Number, 
-        required: [true, "Program duration is required"],
-        min: [1, "Duration must be at least 1 month"]
-      },
-      document_url: { 
+        required: [true, 'Qualification level is required'],
+        enum: ['10th', '12th', 'UG', 'PG', 'PhD']
+    },
+    degree_name: {
         type: String,
+        required: [true, 'Degree name is required']
+    },
+    university: {
+        type: String,
+        required: [true, 'University/Board name is required']
+    },
+    year_of_completion: {
+        type: Number,
+        required: [true, 'Year of completion is required'],
         validate: {
-          validator: function(v) {
-            return !v || /^https?:\/\/.+/.test(v);
-          },
-          message: "Document URL must be valid"
+            validator: function(year) {
+                const currentYear = new Date().getFullYear();
+                return year <= currentYear && year >= 1950;
+            },
+            message: 'Year must be between 1950 and current year'
         }
-      }
+    },
+    marks_type: {
+        type: String,
+        required: [true, 'Marks type is required'],
+        enum: ['Percentage', 'CGPA']
+    },
+    marks_obtained: {
+        type: Number,
+        required: [true, 'Marks obtained is required'],
+        validate: {
+            validator: function(value) {
+                if (this.marks_type === 'Percentage') {
+                    return value >= 0 && value <= 100;
+                } else if (this.marks_type === 'CGPA') {
+                    return value >= 0 && value <= 10;
+                }
+                return true;
+            },
+            message: 'Invalid marks for the selected type'
+        }
+    },
+    branch: {
+        type: String,
+        required: [true, 'Branch/Specialization is required']
+    },
+    program_duration_months: {
+        type: Number,
+        required: [true, 'Program duration is required'],
+        min: [0, 'Program duration cannot be negative']
+    },
+    certificate_url: {
+        type: String
+    },
+    certificate_public_id: {
+        type: String
     }
-  ],
+});
 
-  qualifying_exams: {
-    type: [{
-      exam_type: { 
-        type: String, 
-        enum: {
-          values: ["CAT", "GATE", "GMAT", "NET", "Others"],
-          message: "{VALUE} is not a valid exam type"
-        }
-      },
-      registration_no: { 
+const QualifyingExamSchema = new mongoose.Schema({
+    exam_type: {
         type: String,
-        trim: true
-      },
-      year_of_qualification: { 
+        required: [true, 'Exam type is required'],
+        enum: ['CAT', 'GATE', 'GMAT', 'NET', 'Others']
+    },
+    registration_no: {
+        type: String,
+        required: [true, 'Registration number is required']
+    },
+    year: {
         type: Number,
-        min: [1900, "Invalid year"],
-        max: [new Date().getFullYear(), "Year cannot be in the future"]
-      },
-
-      cat_details: {
-        total_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        total_percentile: { 
-          type: Number,
-          min: [0, "Percentile cannot be negative"],
-          max: [100, "Percentile cannot exceed 100"]
-        },
-        quant_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        quant_percentile: { 
-          type: Number,
-          min: [0, "Percentile cannot be negative"],
-          max: [100, "Percentile cannot exceed 100"]
-        },
-        di_lr_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        di_lr_percentile: { 
-          type: Number,
-          min: [0, "Percentile cannot be negative"],
-          max: [100, "Percentile cannot exceed 100"]
-        },
-        verbal_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        verbal_percentile: { 
-          type: Number,
-          min: [0, "Percentile cannot be negative"],
-          max: [100, "Percentile cannot exceed 100"]
-        }
-      },
-
-      gate_details: {
-        discipline: { 
-          type: String,
-          trim: true
-        },
-        gate_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        gate_rank: { 
-          type: Number,
-          min: [1, "Rank must be at least 1"]
-        },
-        marks_out_of_100: { 
-          type: Number,
-          min: [0, "Marks cannot be negative"],
-          max: [100, "Marks cannot exceed 100"]
-        },
-        qualifying_marks: { 
-          type: Number,
-          min: [0, "Marks cannot be negative"],
-          max: [100, "Marks cannot exceed 100"]
-        }
-      },
-
-      gmat_details: {
-        total_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        verbal_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        quantitative_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        analytical_writing_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        },
-        integrated_reasoning_score: { 
-          type: Number,
-          min: [0, "Score cannot be negative"]
-        }
-      },
-
-      net_details: {
-        type: { 
-          type: String, 
-          enum: {
-            values: ["With Fellowship", "Without Fellowship"],
-            message: "{VALUE} is not a valid NET type"
-          }
-        }
-      },
-
-      exam_certificate_url: { 
-        type: String,
+        required: [true, 'Year is required'],
         validate: {
-          validator: function(v) {
-            return !v || /^https?:\/\/.+/.test(v);
-          },
-          message: "Certificate URL must be valid"
+            validator: function(year) {
+                const currentYear = new Date().getFullYear();
+                return year <= currentYear && year >= 1950;
+            },
+            message: 'Year must be between 1950 and current year'
         }
-      }
-    }],
-    default: []
-  },
-
-  experience: {
-    type: [{
-      type: { 
-        type: String, 
-        enum: {
-          values: ["Industry", "Academia", "Research"],
-          message: "{VALUE} is not a valid experience type"
-        }
-      },
-      organisation: { 
-        type: String,
-        trim: true
-      },
-      place: { 
-        type: String,
-        trim: true
-      },
-      period_from: { 
-        type: Date
-      },
-      period_to: { 
+    },
+    score: {
+        type: Number,
+        required: [true, 'Score is required']
+    },
+    percentile: {
+        type: Number,
+        required: [true, 'Percentile is required'],
+        min: [0, 'Percentile cannot be negative'],
+        max: [100, 'Percentile cannot exceed 100']
+    },
+    validity: {
         type: Date,
-        validate: {
-          validator: function(v) {
-            return !v || v >= this.period_from;
-          },
-          message: "End date must be after start date"
-        }
-      },
-      monthly_compensation: { 
-        type: Number,
-        min: [0, "Compensation cannot be negative"]
-      },
-      designation: { 
-        type: String,
-        trim: true
-      },
-      nature_of_work: { 
-        type: String,
-        trim: true
-      },
-      experience_certificate_url: { 
-        type: String,
-        validate: {
-          validator: function(v) {
-            return !v || /^https?:\/\/.+/.test(v);
-          },
-          message: "Certificate URL must be valid"
-        }
-      }
-    }],
-    default: []
-  },
+        required: [true, 'Validity date is required']
+    },
+    certificate_url: {
+        type: String
+    },
+    certificate_public_id: {
+        type: String
+    }
+});
 
-  publications: {
-    type: [{
-      type: { 
-        type: String, 
-        enum: {
-          values: ["Journal", "Conference", "Book"],
-          message: "{VALUE} is not a valid publication type"
-        }
-      },
-      paper_title: { 
+const ExperienceSchema = new mongoose.Schema({
+    organization: {
         type: String,
-        trim: true
-      },
-      affiliation: { 
+        required: [true, 'Organization name is required']
+    },
+    designation: {
         type: String,
-        trim: true
-      },
-      acceptance_year: { 
-        type: Number,
-        min: [1900, "Invalid year"],
-        max: [new Date().getFullYear(), "Year cannot be in the future"]
-      },
-      document_url: { 
-        type: String,
-        validate: {
-          validator: function(v) {
-            return !v || /^https?:\/\/.+/.test(v);
-          },
-          message: "Document URL must be valid"
-        }
-      }
-    }],
-    default: []
-  }
-}, { timestamps: true });
+        required: [true, 'Designation is required']
+    },
+    from_date: {
+        type: Date,
+        required: [true, 'Start date is required']
+    },
+    to_date: {
+        type: Date,
+        required: [true, 'End date is required']
+    },
+    experience_letter_url: {
+        type: String
+    },
+    experience_letter_public_id: {
+        type: String
+    }
+});
 
-const AcademicDetails = mongoose.model("AcademicDetails", AcademicDetailsSchema);
-module.exports = AcademicDetails;
+const PublicationSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: [true, 'Publication title is required']
+    },
+    journal: {
+        type: String,
+        required: [true, 'Journal name is required']
+    },
+    year: {
+        type: Number,
+        required: [true, 'Publication year is required'],
+        validate: {
+            validator: function(year) {
+                const currentYear = new Date().getFullYear();
+                return year <= currentYear && year >= 1950;
+            },
+            message: 'Year must be between 1950 and current year'
+        }
+    },
+    doi: {
+        type: String
+    },
+    publication_url: {
+        type: String
+    },
+    publication_public_id: {
+        type: String
+    }
+});
+
+const AcademicDetailsSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    qualifications: [QualificationSchema],
+    qualifying_exams: [QualifyingExamSchema],
+    work_experience: [ExperienceSchema],
+    publications: [PublicationSchema],
+    status: {
+        type: String,
+        enum: ['draft', 'submitted'],
+        default: 'draft'
+    },
+    submitted_at: {
+        type: Date
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for faster queries
+AcademicDetailsSchema.index({ user: 1 });
+AcademicDetailsSchema.index({ 'qualifications.year_of_completion': 1 });
+AcademicDetailsSchema.index({ 'qualifying_exams.year': 1 });
+
+module.exports = mongoose.model('AcademicDetails', AcademicDetailsSchema);

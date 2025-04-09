@@ -8,6 +8,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { pdf } from '@react-pdf/renderer';
 import { Input } from './ui/input';
 import { ensureHttps } from '../utils/urlUtils';
+import { Label } from './ui/label';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -353,6 +354,156 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
             </View>
             </View>
         ))}
+      </View>
+
+      {/* Mode of PhD Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Mode of PhD</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Mode</Text>
+          <Text style={styles.value}>{personalDetails?.mode_of_phd || 'Not specified'}</Text>
+        </View>
+      </View>
+
+      {/* Examination Results Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Examination Results</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Bachelor's Degree</Text>
+          <View style={styles.value}>
+            <Text>Branch: {academicDetails?.bachelors_branch || 'Not specified'}</Text>
+            <Text>Aggregate/CGPA: {academicDetails?.bachelors_aggregate || 'Not specified'}</Text>
+            <Text>Class: {academicDetails?.bachelors_class || 'Not specified'}</Text>
+            <Text>% of Marks/GPA: {academicDetails?.bachelors_percentage || 'Not specified'}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Semester-wise Marks</Text>
+          <View style={styles.value}>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border p-2">Semester I</th>
+                    <th className="border p-2">Semester II</th>
+                    <th className="border p-2">Semester III</th>
+                    <th className="border p-2">Semester IV</th>
+                    <th className="border p-2">Semester V</th>
+                    <th className="border p-2">Semester VI</th>
+                    <th className="border p-2">Semester VII</th>
+                    <th className="border p-2">Semester VIII</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border p-2">{academicDetails?.bachelors_sem1 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem2 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem3 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem4 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem5 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem6 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem7 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.bachelors_sem8 || '-'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Master's Degree</Text>
+          <View style={styles.value}>
+            <Text>Branch: {academicDetails?.masters_branch || 'Not specified'}</Text>
+            <Text>Aggregate/CGPA: {academicDetails?.masters_aggregate || 'Not specified'}</Text>
+            <Text>Class: {academicDetails?.masters_class || 'Not specified'}</Text>
+            <Text>% of Marks/GPA: {academicDetails?.masters_percentage || 'Not specified'}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Semester-wise Marks</Text>
+          <View style={styles.value}>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border p-2">Semester I</th>
+                    <th className="border p-2">Semester II</th>
+                    <th className="border p-2">Semester III</th>
+                    <th className="border p-2">Semester IV</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border p-2">{academicDetails?.masters_sem1 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.masters_sem2 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.masters_sem3 || '-'}</td>
+                    <td className="border p-2">{academicDetails?.masters_sem4 || '-'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Other Degree/Diploma</Text>
+          <View style={styles.value}>
+            <Text>{academicDetails?.other_degree || 'Not specified'}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Additional Qualifications Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Additional Qualifications</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>GATE Details</Text>
+          <View style={styles.value}>
+            <Text>Score: {academicDetails?.gate_score || 'Not specified'}</Text>
+            <Text>Qualifying Year: {academicDetails?.gate_year || 'Not specified'}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</Text>
+          <View style={styles.value}>
+            <Text>Examination: {academicDetails?.net_exam || 'Not specified'}</Text>
+            <Text>Date of Exam: {academicDetails?.net_date || 'Not specified'}</Text>
+            <Text>Qualifying Year: {academicDetails?.net_year || 'Not specified'}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Project Titles Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Project Titles</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>UG Project Title</Text>
+          <View style={styles.value}>
+            <Text>{academicDetails?.ug_project_title || 'Not specified'}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>PG Project Title</Text>
+          <View style={styles.value}>
+            <Text>{academicDetails?.pg_project_title || 'Not specified'}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Interested Area of Research Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Interested Area of Research</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Department</Text>
+          <View style={styles.value}>
+            <Text>{academicDetails?.research_department || 'Not specified'}</Text>
+          </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Specialization/Area of Research</Text>
+          <View style={styles.value}>
+            <Text>{academicDetails?.research_area || 'Not specified'}</Text>
+          </View>
+        </View>
       </View>
 
       {/* Payment Section */}
@@ -885,9 +1036,205 @@ export default function PrintApplication() {
                   <p className="font-medium">{pub.type}</p>
                   <p className="text-gray-600">Title: {pub.paper_title}</p>
                   <p className="text-gray-600">Affiliation: {pub.affiliation}</p>
-                  <p className="text-gray-600">Acceptance Year: {pub.acceptance_year}</p>
+                  <p className="text-gray-600">Year: {pub.acceptance_year}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Mode of PhD Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Mode of PhD</h3>
+              <div className="border border-gray-200 rounded p-4">
+                <p className="text-gray-700">
+                  {personalDetails?.mode_of_phd || 'Not specified'}
+                </p>
+              </div>
+            </div>
+
+            {/* Examination Results Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Examination Results</h3>
+              <div className="border border-gray-200 rounded p-4">
+                {/* Bachelor's Degree */}
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">Bachelor's Degree</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Branch</p>
+                      <p className="text-gray-700">{academicDetails?.bachelors_branch || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Aggregate/CGPA</p>
+                      <p className="text-gray-700">{academicDetails?.bachelors_aggregate || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Class</p>
+                      <p className="text-gray-700">{academicDetails?.bachelors_class || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">% of Marks/GPA</p>
+                      <p className="text-gray-700">{academicDetails?.bachelors_percentage || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="font-medium mb-2">Semester-wise Marks</h5>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border border-gray-200">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th className="border p-2">Semester I</th>
+                            <th className="border p-2">Semester II</th>
+                            <th className="border p-2">Semester III</th>
+                            <th className="border p-2">Semester IV</th>
+                            <th className="border p-2">Semester V</th>
+                            <th className="border p-2">Semester VI</th>
+                            <th className="border p-2">Semester VII</th>
+                            <th className="border p-2">Semester VIII</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="border p-2">{academicDetails?.bachelors_sem1 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem2 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem3 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem4 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem5 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem6 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem7 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.bachelors_sem8 || '-'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Master's Degree */}
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">Master's Degree</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Branch</p>
+                      <p className="text-gray-700">{academicDetails?.masters_branch || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Aggregate/CGPA</p>
+                      <p className="text-gray-700">{academicDetails?.masters_aggregate || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Class</p>
+                      <p className="text-gray-700">{academicDetails?.masters_class || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">% of Marks/GPA</p>
+                      <p className="text-gray-700">{academicDetails?.masters_percentage || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="font-medium mb-2">Semester-wise Marks</h5>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border border-gray-200">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th className="border p-2">Semester I</th>
+                            <th className="border p-2">Semester II</th>
+                            <th className="border p-2">Semester III</th>
+                            <th className="border p-2">Semester IV</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="border p-2">{academicDetails?.masters_sem1 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.masters_sem2 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.masters_sem3 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.masters_sem4 || '-'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other Degree/Diploma */}
+                <div>
+                  <h4 className="font-medium mb-2">Other Degree/Diploma</h4>
+                  <p className="text-gray-700">{academicDetails?.other_degree || 'Not specified'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Qualifications Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Additional Qualifications</h3>
+              <div className="border border-gray-200 rounded p-4">
+                {/* GATE Details */}
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">GATE Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Score</p>
+                      <p className="text-gray-700">{academicDetails?.gate_score || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Qualifying Year</p>
+                      <p className="text-gray-700">{academicDetails?.gate_year || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NET/CSIR/UGC/JRF/Lectureship/NBHM/Others */}
+                <div>
+                  <h4 className="font-medium mb-2">NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Examination</p>
+                      <p className="text-gray-700">{academicDetails?.net_exam || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date of Exam</p>
+                      <p className="text-gray-700">{academicDetails?.net_date || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Qualifying Year</p>
+                      <p className="text-gray-700">{academicDetails?.net_year || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Project Titles Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Project Titles</h3>
+              <div className="border border-gray-200 rounded p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">UG Project Title</p>
+                    <p className="text-gray-700">{academicDetails?.ug_project_title || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">PG Project Title</p>
+                    <p className="text-gray-700">{academicDetails?.pg_project_title || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Interested Area of Research Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Interested Area of Research</h3>
+              <div className="border border-gray-200 rounded p-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Department</p>
+                    <p className="text-gray-700">{academicDetails?.research_department || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Specialization/Area of Research</p>
+                    <p className="text-gray-700">{academicDetails?.research_area || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1024,6 +1371,111 @@ export default function PrintApplication() {
                   </object>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* List of Enclosures */}
+        <div className="border rounded-lg p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">14. List of Enclosures (tick if enclosed)</h2>
+          <div className="space-y-4">
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <div>
+                <p className="font-medium">a) Online Transaction Detail</p>
+                <p className="text-sm text-gray-600 ml-6">
+                  A non-refundable application fee of Rs. 500/- (SC/ST/PH candidates are exempted from application fee) by means of online transaction
+                </p>
+                <p className="text-sm text-gray-600 ml-6">
+                  Account Name: IRG NIT Nagaland, Account Number: 35747839287, IFSC Code: SBIN0007543, Branch: SBI, Chumukedima
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">b) Self-Attested copy of Matriculation Marksheet and Certificate</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">c) Self-Attested copy of +2/ Intermediate/Diploma Marksheet and Certificate</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">d) Self-Attested copy of Bachelor's Degree Marksheet and Certificate</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">e) Self-Attested copy of Master's Degree Marksheet and Certificate</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">f) Self-Attested copy of GATE score/NET etc</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">g) Self-Attested copy of Doctor's Certificate (in case of PH)</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">h) Self-Attested copy of Community Certificate</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">i) Self-Attested copy of Experience Letter (if any)</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">j) Self-Attested Government ID</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" />
+              <p className="font-medium">k) Research Publication(s)</p>
+            </div>
+
+            <div className="mt-4">
+              <p className="font-medium">l) Mention the Department and Mode of Ph.D at the top of the envelope</p>
+            </div>
+
+            <div className="mt-4">
+              <p className="font-medium">Additional Information if any (Attach Separate sheet if required)</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Declaration */}
+        <div className="border rounded-lg p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">DECLARATION</h2>
+          <p className="mb-6">
+            I hereby declare that I have carefully read the instructions and particulars relevant to this admission and that the entries made in this application form are correct to the best of my knowledge and belief.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="place">Place:</Label>
+              <Input
+                id="place"
+                name="place"
+                placeholder="Enter place"
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Date:</Label>
+              <Input
+                id="date"
+                name="date"
+                type="date"
+                className="w-full"
+              />
             </div>
           </div>
         </div>

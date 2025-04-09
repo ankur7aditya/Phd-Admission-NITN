@@ -2,10 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const academicRoutes = require("./routes/AcademicDetails");
 const authRoutes = require('./routes/Authroutes');
 const personalRoutes = require('./routes/personalDetailsroutes');
 const Counter = require('./models/Counter_mongo');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -13,15 +16,28 @@ dotenv.config();
 // Create Express app
 const app = express();
 
+// Security middleware
+app.use(helmet());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later'
+});
+app.use(limiter);
+
 // CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000' 
-    : process.env.FRONTEND_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3000' 
+        : process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400 // 24 hours
+};
+app.use(cors(corsOptions));
 
 // Add security headers
 app.use((req, res, next) => {
@@ -53,6 +69,7 @@ app.use((req, res, next) => {
 app.use('/api/academic', academicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/', (req, res) => {
     res.send('Hello from backend');
 });
@@ -84,11 +101,39 @@ const connectDB = async () => {
     }
 };
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    try {
+        await mongoose.connection.close();
+        console.log('MongoDB connection closed through app termination');
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during shutdown:', err);
+        process.exit(1);
+    }
+});
+
 connectDB();
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
+    
+    // Handle specific error types
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({
+            message: 'Validation Error',
+            errors: Object.values(err.errors).map(e => e.message)
+        });
+    }
+    
+    if (err.name === 'UnauthorizedError') {
+        return res.status(401).json({
+            message: 'Unauthorized'
+        });
+    }
+    
+    // Generic error response
     res.status(500).json({ 
         message: 'Something went wrong!',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined

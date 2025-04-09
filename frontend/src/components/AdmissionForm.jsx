@@ -84,6 +84,9 @@ const formatDateForInput = (dateString) => {
 export default function AdmissionForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    programme_type: "phd", // Default to PhD
+    department: "", // Add department field
+    mode_of_phd: "", // Add mode of PhD field
     first_name: "",
     last_name: "",
     dob: "",
@@ -424,13 +427,163 @@ export default function AdmissionForm() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">
-        {isExistingData ? 'Update Personal Details' : 'Personal Details'}
+        Personal Details
       </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Programme Type Selection */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Select Programme Type</h2>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="phd"
+                name="programme_type"
+                value="phd"
+                checked={formData.programme_type === "phd"}
+                onChange={(e) => handleChange({ target: { name: 'programme_type', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="phd">PhD Programme</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="integrated_phd"
+                name="programme_type"
+                value="integrated_phd"
+                checked={formData.programme_type === "integrated_phd"}
+                onChange={(e) => handleChange({ target: { name: 'programme_type', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="integrated_phd">Integrated PhD Programme</Label>
+            </div>
+          </div>
+        </div>
+
+        {/* Department Selection */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Select Department</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="cse"
+                name="department"
+                value="cse"
+                checked={formData.department === "cse"}
+                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="cse">Computer Science & Engineering</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="ece"
+                name="department"
+                value="ece"
+                checked={formData.department === "ece"}
+                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="ece">Electronics & Communication Engineering</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="ee"
+                name="department"
+                value="ee"
+                checked={formData.department === "ee"}
+                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="ee">Electrical Engineering</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="me"
+                name="department"
+                value="me"
+                checked={formData.department === "me"}
+                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="me">Mechanical Engineering</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="eie"
+                name="department"
+                value="eie"
+                checked={formData.department === "eie"}
+                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="eie">Electronics and Instrumentation Engineering</Label>
+            </div>
+          </div>
+          
+          {/* Notes */}
+          <div className="mt-4 space-y-2 text-sm text-gray-600">
+            <p className="font-medium">Note:</p>
+            <ol className="list-decimal pl-5 space-y-1">
+              <li>Submit separate applications for applying in one or more Departments (Regular or IR)</li>
+              <li>The candidate shall submit his/her research plan in about 250 to 300 words along with his/her application</li>
+            </ol>
+          </div>
+        </div>
+
+        {/* Mode of PhD Selection */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold">Mode of PhD</h2>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="full_time"
+                name="mode_of_phd"
+                value="full_time"
+                checked={formData.mode_of_phd === "full_time"}
+                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="full_time">Full Time</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="part_time"
+                name="mode_of_phd"
+                value="part_time"
+                checked={formData.mode_of_phd === "part_time"}
+                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="part_time">Part Time</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="full_time_sponsored"
+                name="mode_of_phd"
+                value="full_time_sponsored"
+                checked={formData.mode_of_phd === "full_time_sponsored"}
+                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="full_time_sponsored">Full Time (Sponsored)</Label>
+            </div>
+          </div>
+        </div>
+
         {/* Basic Information */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="first_name">First Name</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="first_name" required>First Name</Label>
             <Input
               id="first_name"
               name="first_name"
@@ -443,8 +596,8 @@ export default function AdmissionForm() {
               <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>
             )}
           </div>
-          <div>
-            <Label htmlFor="last_name">Last Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="last_name" required>Last Name</Label>
             <Input
               id="last_name"
               name="last_name"
@@ -460,9 +613,9 @@ export default function AdmissionForm() {
         </div>
 
         {/* Date of Birth and Gender */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="dob">Date of Birth</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="dob" required>Date of Birth</Label>
             <Input
               id="dob"
               name="dob"
@@ -476,8 +629,8 @@ export default function AdmissionForm() {
               <p className="text-sm text-red-500 mt-1">{errors.dob}</p>
             )}
           </div>
-          <div>
-            <Label htmlFor="gender">Gender</Label>
+          <div className="space-y-2">
+            <Label htmlFor="gender" required>Gender</Label>
             <Select
               value={formData.gender}
               onValueChange={(value) => handleChange({ target: { name: 'gender', value } })}
@@ -498,9 +651,9 @@ export default function AdmissionForm() {
         </div>
 
         {/* Nationality and Category */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="nationality">Nationality</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="nationality" required>Nationality</Label>
             <Input
               id="nationality"
               name="nationality"
@@ -509,8 +662,8 @@ export default function AdmissionForm() {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="category">Category</Label>
+          <div className="space-y-2">
+            <Label htmlFor="category" required>Category</Label>
             <Select
               value={formData.category}
               onValueChange={(value) => handleChange({ target: { name: 'category', value } })}
@@ -530,9 +683,9 @@ export default function AdmissionForm() {
         </div>
 
         {/* Religion and Marital Status */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="religion">Religion</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="religion" required>Religion</Label>
             <Input
               id="religion"
               name="religion"
@@ -541,8 +694,8 @@ export default function AdmissionForm() {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="marital_status">Marital Status</Label>
+          <div className="space-y-2">
+            <Label htmlFor="marital_status" required>Marital Status</Label>
             <Select
               value={formData.marital_status}
               onValueChange={(value) => handleChange({ target: { name: 'marital_status', value } })}
@@ -561,9 +714,9 @@ export default function AdmissionForm() {
         </div>
 
         {/* Parent Information */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="father_name">Father's Name</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="father_name" required>Father's Name</Label>
             <Input
               id="father_name"
               name="father_name"
@@ -572,8 +725,8 @@ export default function AdmissionForm() {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="mother_name">Mother's Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="mother_name" required>Mother's Name</Label>
             <Input
               id="mother_name"
               name="mother_name"
@@ -585,9 +738,9 @@ export default function AdmissionForm() {
         </div>
 
         {/* Contact Information */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" required>Email</Label>
             <Input
               id="email"
               name="email"
@@ -601,8 +754,8 @@ export default function AdmissionForm() {
               <p className="text-sm text-red-500 mt-1">{errors.email}</p>
             )}
           </div>
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
+          <div className="space-y-2">
+            <Label htmlFor="phone" required>Phone Number</Label>
             <Input
               id="phone"
               name="phone"
@@ -632,9 +785,9 @@ export default function AdmissionForm() {
         {/* Communication Address */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Communication Address</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label htmlFor="communication_address.street">Street Address</Label>
+              <Label htmlFor="communication_address.street" required>Street Address</Label>
               <Input
                 id="communication_address.street"
                 name="communication_address.street"
@@ -662,7 +815,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="communication_address.city">City</Label>
+              <Label htmlFor="communication_address.city" required>City</Label>
               <Input
                 id="communication_address.city"
                 name="communication_address.city"
@@ -672,7 +825,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="communication_address.state">State</Label>
+              <Label htmlFor="communication_address.state" required>State</Label>
               <Input
                 id="communication_address.state"
                 name="communication_address.state"
@@ -682,7 +835,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="communication_address.pincode">Pincode</Label>
+              <Label htmlFor="communication_address.pincode" required>Pincode</Label>
               <Input
                 id="communication_address.pincode"
                 name="communication_address.pincode"
@@ -711,9 +864,9 @@ export default function AdmissionForm() {
         {/* Permanent Address */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Permanent Address</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label htmlFor="permanent_address.street">Street Address</Label>
+              <Label htmlFor="permanent_address.street" required>Street Address</Label>
               <Input
                 id="permanent_address.street"
                 name="permanent_address.street"
@@ -744,7 +897,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="permanent_address.city">City</Label>
+              <Label htmlFor="permanent_address.city" required>City</Label>
               <Input
                 id="permanent_address.city"
                 name="permanent_address.city"
@@ -755,7 +908,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="permanent_address.state">State</Label>
+              <Label htmlFor="permanent_address.state" required>State</Label>
               <Input
                 id="permanent_address.state"
                 name="permanent_address.state"
@@ -766,7 +919,7 @@ export default function AdmissionForm() {
               />
             </div>
             <div>
-              <Label htmlFor="permanent_address.pincode">Pincode</Label>
+              <Label htmlFor="permanent_address.pincode" required>Pincode</Label>
               <Input
                 id="permanent_address.pincode"
                 name="permanent_address.pincode"

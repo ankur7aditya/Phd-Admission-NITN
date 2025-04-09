@@ -336,11 +336,164 @@ const uploadDemandDraft = async (req, res) => {
     }
 };
 
+const uploadTransactionScreenshot = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        if (!req.user?._id) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const response = await uploadOnCloudinary(req.file.path, {
+            resource_type: 'image',
+            folder: 'transaction_documents'
+        });
+        
+        if (!response) {
+            return res.status(500).json({ 
+                message: 'Failed to upload transaction screenshot to cloud storage'
+            });
+        }
+
+        const personalDetails = await PersonalDetails.findOneAndUpdate(
+            { userid: req.user._id },
+            { 'transaction_details.transaction_screenshot_url': response.secure_url },
+            { new: true }
+        );
+
+        if (!personalDetails) {
+            return res.status(404).json({ message: 'Personal details not found' });
+        }
+
+        // Clean up the temporary file
+        if (req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        return res.status(200).json({
+            message: 'Transaction screenshot uploaded successfully',
+            url: response.secure_url
+        });
+    } catch (error) {
+        console.error('Error uploading transaction screenshot:', error);
+        return res.status(500).json({ 
+            message: 'Error uploading transaction screenshot',
+            error: error.message
+        });
+    }
+};
+
+const updateTransactionDetails = async (req, res) => {
+    try {
+        if (!req.user?._id) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const { transaction_id, transaction_date, issued_bank } = req.body;
+
+        const personalDetails = await PersonalDetails.findOneAndUpdate(
+            { userid: req.user._id },
+            {
+                'transaction_details.transaction_id': transaction_id,
+                'transaction_details.transaction_date': transaction_date,
+                'transaction_details.issued_bank': issued_bank
+            },
+            { new: true }
+        );
+
+        if (!personalDetails) {
+            return res.status(404).json({ message: 'Personal details not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Transaction details updated successfully',
+            data: personalDetails.transaction_details
+        });
+    } catch (error) {
+        console.error('Error updating transaction details:', error);
+        return res.status(500).json({ 
+            message: 'Error updating transaction details',
+            error: error.message
+        });
+    }
+};
+
+const updateDeclaration = async (req, res) => {
+    try {
+        if (!req.user?._id) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const { place, date } = req.body;
+
+        const personalDetails = await PersonalDetails.findOneAndUpdate(
+            { userid: req.user._id },
+            {
+                'declaration.place': place,
+                'declaration.date': date
+            },
+            { new: true }
+        );
+
+        if (!personalDetails) {
+            return res.status(404).json({ message: 'Personal details not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Declaration updated successfully',
+            data: personalDetails.declaration
+        });
+    } catch (error) {
+        console.error('Error updating declaration:', error);
+        return res.status(500).json({ 
+            message: 'Error updating declaration',
+            error: error.message
+        });
+    }
+};
+
+const updateEnclosures = async (req, res) => {
+    try {
+        if (!req.user?._id) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const enclosures = req.body;
+
+        const personalDetails = await PersonalDetails.findOneAndUpdate(
+            { userid: req.user._id },
+            { enclosures },
+            { new: true }
+        );
+
+        if (!personalDetails) {
+            return res.status(404).json({ message: 'Personal details not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Enclosures updated successfully',
+            data: personalDetails.enclosures
+        });
+    } catch (error) {
+        console.error('Error updating enclosures:', error);
+        return res.status(500).json({ 
+            message: 'Error updating enclosures',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createPersonal,
     getPersonal,
     updatePersonal,
     uploadPhoto,
     uploadSignature,
-    uploadDemandDraft
+    uploadDemandDraft,
+    uploadTransactionScreenshot,
+    updateTransactionDetails,
+    updateDeclaration,
+    updateEnclosures
 };
