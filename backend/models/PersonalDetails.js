@@ -7,13 +7,21 @@ const PersonalDetailsSchema = new mongoose.Schema({
         required: true
     },
     // Personal Information
-    name: {
+    first_name: {
         type: String,
-        required: [true, 'Name is required'],
+        required: [true, 'First name is required'],
         trim: true,
-        minlength: [2, 'Name must be at least 2 characters long'],
-        maxlength: [30, 'Name cannot exceed 30 characters'],
-        match: [/^[a-zA-Z\s]*$/, 'Name can only contain letters and spaces']
+        minlength: [2, 'First name must be at least 2 characters long'],
+        maxlength: [30, 'First name cannot exceed 30 characters'],
+        match: [/^[a-zA-Z\s]*$/, 'First name can only contain letters and spaces']
+    },
+    last_name: {
+        type: String,
+        required: [true, 'Last name is required'],
+        trim: true,
+        minlength: [2, 'Last name must be at least 2 characters long'],
+        maxlength: [30, 'Last name cannot exceed 30 characters'],
+        match: [/^[a-zA-Z\s]*$/, 'Last name can only contain letters and spaces']
     },
     date_of_birth: {
         type: Date,
@@ -33,6 +41,51 @@ const PersonalDetailsSchema = new mongoose.Schema({
         required: [true, 'Gender is required'],
         enum: ['Male', 'Female', 'Other']
     },
+    nationality: {
+        type: String,
+        required: [true, 'Nationality is required'],
+        trim: true
+    },
+    category: {
+        type: String,
+        required: [true, 'Category is required'],
+        enum: ['General', 'OBC', 'SC', 'ST', 'Other']
+    },
+    physically_challenged: {
+        type: Boolean,
+        required: [true, 'Physically challenged status is required'],
+        default: false
+    },
+    religion: {
+        type: String,
+        required: [true, 'Religion is required'],
+        trim: true
+    },
+    father_name: {
+        type: String,
+        required: [true, "Father's name is required"],
+        trim: true
+    },
+    mother_name: {
+        type: String,
+        required: [true, "Mother's name is required"],
+        trim: true
+    },
+    marital_status: {
+        type: String,
+        required: [true, 'Marital status is required'],
+        enum: ['Single', 'Married', 'Divorced', 'Widowed']
+    },
+    spouse_name: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: function(v) {
+                return !v || (this.marital_status !== 'Single' && v.length > 0);
+            },
+            message: "Spouse name is required for married, divorced, or widowed applicants"
+        }
+    },
     phone: {
         type: String,
         required: [true, 'Phone number is required'],
@@ -42,6 +95,36 @@ const PersonalDetailsSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Email is required'],
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
+    },
+
+    // Programme Information
+    programme_type: {
+        type: String,
+        required: [true, 'Programme type is required'],
+        enum: ['Ph.D.', 'M.Phil.', 'M.Tech.', 'M.Sc.'],
+        default: 'Ph.D.'
+    },
+    department: {
+        type: String,
+        required: [true, 'Department is required'],
+        enum: [
+            'Computer Science and Engineering',
+            'Electronics and Communication Engineering',
+            'Mechanical Engineering',
+            'Civil Engineering',
+            'Electrical Engineering',
+            'Chemical Engineering',
+            'Mathematics',
+            'Physics',
+            'Chemistry',
+            'Biotechnology',
+            'Management Studies'
+        ]
+    },
+    mode_of_phd: {
+        type: String,
+        required: [true, 'Mode of PhD is required'],
+        enum: ['Full Time', 'Part Time', 'Full Time (Sponsored)']
     },
 
     // Address Information
@@ -103,10 +186,6 @@ const PersonalDetailsSchema = new mongoose.Schema({
         url: String,
         public_id: String
     },
-    id_proof: {
-        url: String,
-        public_id: String
-    },
 
     // Status
     status: {
@@ -124,5 +203,8 @@ const PersonalDetailsSchema = new mongoose.Schema({
 // Index for faster queries
 PersonalDetailsSchema.index({ user: 1 });
 PersonalDetailsSchema.index({ email: 1 });
+PersonalDetailsSchema.index({ programme_type: 1 });
+PersonalDetailsSchema.index({ department: 1 });
+PersonalDetailsSchema.index({ mode_of_phd: 1 });
 
 module.exports = mongoose.model('PersonalDetails', PersonalDetailsSchema); 

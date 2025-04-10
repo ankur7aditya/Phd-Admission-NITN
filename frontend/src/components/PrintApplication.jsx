@@ -154,10 +154,36 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     color: '#666',
   },
+  table: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginTop: 5,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  tableHeader: {
+    flex: 1,
+    padding: 5,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  tableCell: {
+    flex: 1,
+    padding: 5,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
 });
 
 // PDF Document Component
-const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber }) => (
+const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber, enclosures, payment, declaration }) => (
   <>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -176,7 +202,7 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Date of Birth</Text>
-              <Text style={styles.value}>{new Date(personalDetails?.dob).toLocaleDateString()}</Text>
+              <Text style={styles.value}>{personalDetails?.date_of_birth ? new Date(personalDetails.date_of_birth).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Not specified'}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Gender</Text>
@@ -230,21 +256,21 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
           
           {/* Photo and Signature - Moved to top right */}
           <View style={styles.photoSignatureContainer}>
-            {personalDetails?.photo && (
+            {personalDetails?.photo?.url && (
               <View style={styles.photoContainer}>
                 <Text style={styles.photoLabel}>Recent Photograph</Text>
                 <Image
-                  src={ensureHttps(personalDetails.photo)}
+                  src={personalDetails.photo.url}
                   style={styles.photo}
                   cache={false}
                 />
               </View>
             )}
-            {personalDetails?.signature && (
+            {personalDetails?.signature?.url && (
               <View style={styles.signatureContainer}>
                 <Text style={styles.signatureLabel}>Signature</Text>
                 <Image
-                  src={ensureHttps(personalDetails.signature)}
+                  src={personalDetails.signature.url}
                   style={styles.signature}
                   cache={false}
                 />
@@ -258,35 +284,41 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Communication Address</Text>
         <View style={styles.row}>
-          <Text style={styles.label}>Street</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.street}</Text>
+          <Text style={styles.label}>Current Address</Text>
+          <View style={styles.value}>
+            <Text>{personalDetails?.current_address?.street || 'Not specified'}</Text>
+            {personalDetails?.current_address?.line2 && (
+              <Text>{personalDetails.current_address.line2}</Text>
+            )}
+            {personalDetails?.current_address?.line3 && (
+              <Text>{personalDetails.current_address.line3}</Text>
+            )}
+            <Text>
+              {personalDetails?.current_address?.city || 'Not specified'}, {personalDetails?.current_address?.state || 'Not specified'} - {personalDetails?.current_address?.pincode || 'Not specified'}
+            </Text>
+          </View>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Line 2</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.line2}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Line 3</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.line3}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>City</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.city}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>State</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.state}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Pincode</Text>
-          <Text style={styles.value}>{personalDetails?.communication_address?.pincode}</Text>
+          <Text style={styles.label}>Permanent Address</Text>
+          <View style={styles.value}>
+            <Text>{personalDetails?.permanent_address?.street || 'Not specified'}</Text>
+            {personalDetails?.permanent_address?.line2 && (
+              <Text>{personalDetails.permanent_address.line2}</Text>
+            )}
+            {personalDetails?.permanent_address?.line3 && (
+              <Text>{personalDetails.permanent_address.line3}</Text>
+            )}
+            <Text>
+              {personalDetails?.permanent_address?.city || 'Not specified'}, {personalDetails?.permanent_address?.state || 'Not specified'} - {personalDetails?.permanent_address?.pincode || 'Not specified'}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Academic Details Section - Reformatted */}
+      {/* Academic Qualifications Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Academic Qualifications</Text>
-        {academicDetails?.qualifications.map((qual, index) => (
+        {(academicDetails?.qualifications || []).map((qual, index) => (
           <View key={index} style={styles.row}>
             <Text style={styles.label}>{qual.standard}</Text>
             <View style={styles.value}>
@@ -296,37 +328,15 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
               <Text>Marks: {qual.marks_obtained} {qual.marks_type}</Text>
               {qual.branch && <Text>Branch: {qual.branch}</Text>}
               <Text>Duration: {qual.program_duration_months} months</Text>
-          </View>
-          </View>
-        ))}
-          </View>
-
-      {/* Qualifying Exams Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Qualifying Examinations</Text>
-        {academicDetails?.qualifying_exams.map((exam, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.label}>{exam.exam_type}</Text>
-            <View style={styles.value}>
-              <Text>Registration No: {exam.registration_no}</Text>
-              <Text>Year: {exam.year_of_qualification}</Text>
-              {exam.exam_type === 'NET' && (
-                <>
-                  <Text>Type: {exam.net_details?.type}</Text>
-                  <Text>Subject: {exam.net_details?.subject}</Text>
-                  <Text>Score: {exam.net_details?.score}</Text>
-                  <Text>Rank: {exam.net_details?.rank}</Text>
-                </>
-              )}
-          </View>
+            </View>
           </View>
         ))}
-          </View>
+      </View>
 
       {/* Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Professional Experience</Text>
-        {academicDetails?.experience.map((exp, index) => (
+        {(academicDetails?.experience || []).map((exp, index) => (
           <View key={index} style={styles.row}>
             <Text style={styles.label}>{exp.type}</Text>
             <View style={styles.value}>
@@ -344,7 +354,7 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
       {/* Publications Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Publications</Text>
-        {academicDetails?.publications.map((pub, index) => (
+        {(academicDetails?.publications || []).map((pub, index) => (
           <View key={index} style={styles.row}>
             <Text style={styles.label}>{pub.type}</Text>
             <View style={styles.value}>
@@ -371,83 +381,71 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         <View style={styles.row}>
           <Text style={styles.label}>Bachelor's Degree</Text>
           <View style={styles.value}>
-            <Text>Branch: {academicDetails?.bachelors_branch || 'Not specified'}</Text>
-            <Text>Aggregate/CGPA: {academicDetails?.bachelors_aggregate || 'Not specified'}</Text>
-            <Text>Class: {academicDetails?.bachelors_class || 'Not specified'}</Text>
-            <Text>% of Marks/GPA: {academicDetails?.bachelors_percentage || 'Not specified'}</Text>
+            <Text>Branch: {academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.branch || 'Not specified'}</Text>
+            <Text>Aggregate/CGPA: {academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.cgpa || 'Not specified'}</Text>
+            <Text>Class: {academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.class || 'Not specified'}</Text>
+            <Text>% of Marks/GPA: {academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.percentage || 'Not specified'}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Semester-wise Marks</Text>
           <View style={styles.value}>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border p-2">Semester I</th>
-                    <th className="border p-2">Semester II</th>
-                    <th className="border p-2">Semester III</th>
-                    <th className="border p-2">Semester IV</th>
-                    <th className="border p-2">Semester V</th>
-                    <th className="border p-2">Semester VI</th>
-                    <th className="border p-2">Semester VII</th>
-                    <th className="border p-2">Semester VIII</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border p-2">{academicDetails?.bachelors_sem1 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem2 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem3 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem4 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem5 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem6 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem7 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.bachelors_sem8 || '-'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableHeader}>Semester I</Text>
+                <Text style={styles.tableHeader}>Semester II</Text>
+                <Text style={styles.tableHeader}>Semester III</Text>
+                <Text style={styles.tableHeader}>Semester IV</Text>
+                <Text style={styles.tableHeader}>Semester V</Text>
+                <Text style={styles.tableHeader}>Semester VI</Text>
+                <Text style={styles.tableHeader}>Semester VII</Text>
+                <Text style={styles.tableHeader}>Semester VIII</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.I?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.II?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.III?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.IV?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.V?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VI?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VII?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VIII?.marks || '-'}</Text>
+              </View>
+            </View>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Master's Degree</Text>
           <View style={styles.value}>
-            <Text>Branch: {academicDetails?.masters_branch || 'Not specified'}</Text>
-            <Text>Aggregate/CGPA: {academicDetails?.masters_aggregate || 'Not specified'}</Text>
-            <Text>Class: {academicDetails?.masters_class || 'Not specified'}</Text>
-            <Text>% of Marks/GPA: {academicDetails?.masters_percentage || 'Not specified'}</Text>
+            <Text>Branch: {academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.branch || 'Not specified'}</Text>
+            <Text>Aggregate/CGPA: {academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.cgpa || 'Not specified'}</Text>
+            <Text>Class: {academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.class || 'Not specified'}</Text>
+            <Text>% of Marks/GPA: {academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.percentage || 'Not specified'}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Semester-wise Marks</Text>
           <View style={styles.value}>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border p-2">Semester I</th>
-                    <th className="border p-2">Semester II</th>
-                    <th className="border p-2">Semester III</th>
-                    <th className="border p-2">Semester IV</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border p-2">{academicDetails?.masters_sem1 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.masters_sem2 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.masters_sem3 || '-'}</td>
-                    <td className="border p-2">{academicDetails?.masters_sem4 || '-'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableHeader}>Semester I</Text>
+                <Text style={styles.tableHeader}>Semester II</Text>
+                <Text style={styles.tableHeader}>Semester III</Text>
+                <Text style={styles.tableHeader}>Semester IV</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.I?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.II?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.III?.marks || '-'}</Text>
+                <Text style={styles.tableCell}>{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.IV?.marks || '-'}</Text>
+              </View>
+            </View>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Other Degree/Diploma</Text>
           <View style={styles.value}>
-            <Text>{academicDetails?.other_degree || 'Not specified'}</Text>
+            <Text>{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.degree_name || 'Not specified'}</Text>
           </View>
         </View>
       </View>
@@ -458,16 +456,16 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         <View style={styles.row}>
           <Text style={styles.label}>GATE Details</Text>
           <View style={styles.value}>
-            <Text>Score: {academicDetails?.gate_score || 'Not specified'}</Text>
-            <Text>Qualifying Year: {academicDetails?.gate_year || 'Not specified'}</Text>
+            <Text>Score: {academicDetails?.additional_qualifications?.find(q => q.exam_type === 'GATE')?.score || 'Not specified'}</Text>
+            <Text>Qualifying Year: {academicDetails?.additional_qualifications?.find(q => q.exam_type === 'GATE')?.qualifying_year || 'Not specified'}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</Text>
           <View style={styles.value}>
-            <Text>Examination: {academicDetails?.net_exam || 'Not specified'}</Text>
-            <Text>Date of Exam: {academicDetails?.net_date || 'Not specified'}</Text>
-            <Text>Qualifying Year: {academicDetails?.net_year || 'Not specified'}</Text>
+            <Text>Examination: {academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.exam_name || 'Not specified'}</Text>
+            <Text>Date of Exam: {academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.date_of_exam || 'Not specified'}</Text>
+            <Text>Qualifying Year: {academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.qualifying_year || 'Not specified'}</Text>
           </View>
         </View>
       </View>
@@ -478,13 +476,13 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         <View style={styles.row}>
           <Text style={styles.label}>UG Project Title</Text>
           <View style={styles.value}>
-            <Text>{academicDetails?.ug_project_title || 'Not specified'}</Text>
+            <Text>{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.project_title || 'Not specified'}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>PG Project Title</Text>
           <View style={styles.value}>
-            <Text>{academicDetails?.pg_project_title || 'Not specified'}</Text>
+            <Text>{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.project_title || 'Not specified'}</Text>
           </View>
         </View>
       </View>
@@ -495,30 +493,115 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
         <View style={styles.row}>
           <Text style={styles.label}>Department</Text>
           <View style={styles.value}>
-            <Text>{academicDetails?.research_department || 'Not specified'}</Text>
+            <Text>{academicDetails?.research_interest?.branch || 'Not specified'}</Text>
           </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Specialization/Area of Research</Text>
           <View style={styles.value}>
-            <Text>{academicDetails?.research_area || 'Not specified'}</Text>
+            <Text>{academicDetails?.research_interest?.area || 'Not specified'}</Text>
           </View>
         </View>
+      </View>
+
+      {/* Enclosure Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>List of Enclosures</Text>
+        {[
+          { id: 'transaction_details', label: 'Online Transaction Details' },
+          { id: 'matriculation', label: 'Matriculation Marksheet and Certificate' },
+          { id: 'intermediate', label: '+2/Intermediate/Diploma Marksheet and Certificate' },
+          { id: 'bachelors', label: "Bachelor's Degree Marksheet and Certificate" },
+          { id: 'masters', label: "Master's Degree Marksheet and Certificate" },
+          { id: 'gate_net', label: 'GATE score/NET Certificate' },
+          { id: 'doctors_certificate', label: "Doctor's Certificate (in case of PH)" },
+          { id: 'community_certificate', label: 'Community Certificate' },
+          { id: 'experience_letter', label: 'Experience Letter (if any)' },
+          { id: 'government_id', label: 'Government ID' },
+          { id: 'research_publications', label: 'Research Publication(s)' }
+        ].map((item) => (
+          <View key={item.id} style={styles.row}>
+            <Text style={styles.label}>{item.label}</Text>
+            <View style={styles.value}>
+              <Text style={{ fontSize: 14 }}>{enclosures?.enclosure?.enclosures?.[item.id] ? 'Ticked' : 'Not Ticked'}</Text>
+            </View>
+          </View>
+        ))}
+
+        {enclosures?.enclosure?.additional_info && (
+          <View style={[styles.row, { marginTop: 10 }]}>
+            <Text style={styles.label}>Additional Information</Text>
+            <View style={styles.value}>
+              <Text style={styles.fullWidth}>{enclosures.enclosure.additional_info}</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Payment Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Payment Details</Text>
-            <View style={styles.row}>
-          <Text style={styles.label}>Demand Draft</Text>
-          <Text style={styles.value}>{personalDetails?.dd_url ? 'Uploaded' : 'Not Uploaded'}</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Transaction ID</Text>
+          <Text style={styles.value}>{payment?.data?.transaction_id || 'Not specified'}</Text>
         </View>
-            </View>
-            
-      {/* Documents Section */}
-      {/* <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Documents</Text>
-      </View> */}
+        <View style={styles.row}>
+          <Text style={styles.label}>Transaction Date</Text>
+          <Text style={styles.value}>{payment?.data?.transaction_date ? new Date(payment.data.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Not specified'}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Issued Bank</Text>
+          <Text style={styles.value}>{payment?.data?.issued_bank || 'Not specified'}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Amount</Text>
+          <Text style={styles.value}>₹{payment?.data?.amount || 'Not specified'}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Status</Text>
+          <Text style={styles.value}>{payment?.data?.status || 'Not specified'}</Text>
+        </View>
+        {payment?.data?.screenshot?.url && (
+          <View style={styles.imageContainer}>
+            <Text style={styles.documentTitle}>Transaction Screenshot</Text>
+            <Image
+              src={payment.data.screenshot.url}
+              style={styles.documentImage}
+              cache={false}
+            />
+          </View>
+        )}
+      </View>
+
+      {/* Declaration Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>DECLARATION</Text>
+        <Text style={styles.fullWidth}>
+          I hereby declare that I have carefully read the instructions and particulars relevant to this admission and that the entries made in this application form are correct to the best of my knowledge and belief.
+        </Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Place:</Text>
+          <Text style={styles.value}>{enclosures?.enclosure?.declaration?.place || 'Not specified'}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Date:</Text>
+          <Text style={styles.value}>{enclosures?.enclosure?.declaration?.date ? new Date(enclosures.enclosure.declaration.date).toLocaleDateString() : 'Not specified'}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Signature</Text>
+          <View style={styles.value}>
+            {personalDetails?.signature?.url ? (
+              <Image
+                src={personalDetails.signature.url}
+                style={styles.signature}
+                cache={false}
+              />
+            ) : (
+              <Text style={styles.value}>Not Attached</Text>
+            )}
+          </View>
+        </View>
+      </View>
     </Page>
   </>
 );
@@ -526,11 +609,65 @@ const ApplicationPDF = ({ personalDetails, academicDetails, applicationNumber })
 export default function PrintApplication() {
   const [personalDetails, setPersonalDetails] = useState(null);
   const [academicDetails, setAcademicDetails] = useState(null);
+  const [enclosures, setEnclosures] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [applicationNumber, setApplicationNumber] = useState('');
   const [showPDF, setShowPDF] = useState(false);
   const [mergedPdfUrl, setMergedPdfUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [payment, setPayment] = useState(null);
+  const [declaration, setDeclaration] = useState({
+    place: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    transaction_id: '',
+    transaction_date: '',
+    issued_bank: '',
+    amount: '',
+    status: ''
+  });
+
+  const handleDeclarationChange = (e) => {
+    const { name, value } = e.target;
+    setDeclaration(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePaymentUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/payment/update`,
+        paymentForm,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      if (response.data.success) {
+        setPayment(response.data);
+        toast.success('Payment details updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating payment details:', error);
+      toast.error('Failed to update payment details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -559,29 +696,35 @@ export default function PrintApplication() {
         console.log('Academic details response:', academicResponse.data);
         setAcademicDetails(academicResponse.data);
 
+        // Fetch enclosures
+        const enclosuresResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/enclosures/get`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        });
+        console.log('Enclosures response:', enclosuresResponse.data);
+        setEnclosures(enclosuresResponse.data);
+        // Set declaration data from enclosures
+        if (enclosuresResponse.data?.enclosure?.declaration) {
+          setDeclaration(enclosuresResponse.data.enclosure.declaration);
+        }
+
+        // Fetch payment details
+        const paymentResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payment/get`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        });
+        console.log('Payment details response:', paymentResponse.data);
+        setPayment(paymentResponse.data);
+        if (paymentResponse.data?.data) {
+          setPaymentForm({
+            transaction_id: paymentResponse.data.data.transaction_id || '',
+            transaction_date: paymentResponse.data.data.transaction_date || '',
+            issued_bank: paymentResponse.data.data.issued_bank || '',
+            amount: paymentResponse.data.data.amount || '',
+            status: paymentResponse.data.data.status || ''
+          });
+        }
       } catch (error) {
         console.error('Error fetching details:', error);
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.error('Error response:', error.response.data);
-          console.error('Error status:', error.response.status);
-          console.error('Error headers:', error.response.headers);
-          
-          if (error.response.status === 404) {
-            toast.error('No application details found. Please complete your application first.');
-          } else {
-            toast.error(error.response.data.message || 'Failed to load application details');
-          }
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.error('No response received:', error.request);
-          toast.error('No response from server. Please check your connection.');
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Error setting up request:', error.message);
-          toast.error('Error setting up request. Please try again.');
-        }
+        toast.error('Failed to fetch application details');
       } finally {
         setIsLoading(false);
       }
@@ -594,6 +737,7 @@ export default function PrintApplication() {
     try {
       setIsLoading(true);
       console.log('Starting PDF generation process...');
+      console.log('Payment data:', payment);
       
       // Create a new PDF document
       console.log('Creating new PDF document...');
@@ -608,6 +752,9 @@ export default function PrintApplication() {
               personalDetails={personalDetails} 
               academicDetails={academicDetails} 
               applicationNumber={applicationNumber}
+              enclosures={enclosures}
+              payment={payment}
+              declaration={declaration}
             />
           </Document>
         ).toBlob();
@@ -629,6 +776,11 @@ export default function PrintApplication() {
         const ensureHttps = (url) => {
           if (!url) return null;
           console.log('Original URL:', url);
+          
+          // Handle nested URL objects
+          if (typeof url === 'object' && url.url) {
+            url = url.url;
+          }
           
           // Convert to raw format if it's a Cloudinary URL
           if (url.includes('cloudinary.com')) {
@@ -656,8 +808,8 @@ export default function PrintApplication() {
           }
           
           console.log('Returning original URL:', url);
-  return url;
-};
+          return url;
+        };
 
         // Merge all documents
         const documentsToMerge = [
@@ -669,41 +821,32 @@ export default function PrintApplication() {
           }] : []),
           
           // Qualification documents
-          ...(academicDetails?.qualifications?.flatMap(qual => 
+          ...((academicDetails?.qualifications || []).flatMap(qual => 
             qual.document_url ? [{
               url: ensureHttps(qual.document_url),
-            type: `qualification-${qual.standard}`,
-            contentType: 'application/pdf'
-            }] : []
-          ) || []),
-          
-          // Qualifying exam documents
-          ...(academicDetails?.qualifying_exams?.flatMap(exam => 
-            exam.document_url ? [{
-              url: ensureHttps(exam.document_url),
-            type: `exam-${exam.exam_type}`,
-            contentType: 'application/pdf'
+              type: `qualification-${qual.standard}`,
+              contentType: 'application/pdf'
             }] : []
           ) || []),
           
           // Experience documents
-          ...(academicDetails?.experience?.flatMap(exp => 
+          ...((academicDetails?.experience || []).flatMap(exp => 
             exp.document_url ? [{
               url: ensureHttps(exp.document_url),
-            type: `experience-${exp.organisation}`,
-            contentType: 'application/pdf'
+              type: `experience-${exp.organisation}`,
+              contentType: 'application/pdf'
             }] : []
           ) || []),
           
           // Publication documents
-          ...(academicDetails?.publications?.flatMap(pub => 
+          ...((academicDetails?.publications || []).flatMap(pub => 
             pub.document_url ? [{
               url: ensureHttps(pub.document_url),
-            type: `publication-${pub.paper_title}`,
-            contentType: 'application/pdf'
+              type: `publication-${pub.paper_title}`,
+              contentType: 'application/pdf'
             }] : []
           ) || [])
-        ];
+        ].filter(doc => doc.url); // Filter out any documents with null URLs
 
         // Process each document sequentially
         for (const doc of documentsToMerge) {
@@ -842,6 +985,9 @@ export default function PrintApplication() {
               personalDetails={personalDetails} 
               academicDetails={academicDetails} 
               applicationNumber={applicationNumber}
+              enclosures={enclosures}
+              payment={payment}
+              declaration={declaration}
             />
           </PDFViewer>
         )}
@@ -872,7 +1018,13 @@ export default function PrintApplication() {
           </div>
           <div className="ml-3">
             <p className="text-sm text-red-700">
-              <span className="font-medium">Important:</span> Print the application form and send the hard copy of the Demand Draft (DD) via post.
+              <span className="font-medium">Important:</span> After Completion, Take a printout of the application form and send the hard copy via Speed Post to the following address:
+              <br />
+              <br />
+              <span className="font-medium">Address: The Office of Associate Dean (R&C)
+              NIT Nagaland, Chumukedima, Nagaland - 797103</span>
+              <br />
+              
             </p>
           </div>
         </div>
@@ -896,7 +1048,7 @@ export default function PrintApplication() {
               </div>
               <div>
                 <p className="text-gray-600">Date of Birth</p>
-                <p className="font-medium">{new Date(personalDetails.dob).toLocaleDateString()}</p>
+                <p className="font-medium">{personalDetails.date_of_birth ? new Date(personalDetails.date_of_birth).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Not specified'}</p>
               </div>
               <div>
                 <p className="text-gray-600">Gender</p>
@@ -953,17 +1105,36 @@ export default function PrintApplication() {
         {/* Communication Address */}
         {personalDetails && (
           <div className="border-b pb-4">
-            <h2 className="text-xl font-semibold mb-4">Communication Address</h2>
+            <h2 className="text-xl font-semibold mb-4">Current Address</h2>
             <div>
-              <p className="font-medium">{personalDetails.communication_address.street}</p>
-              {personalDetails.communication_address.line2 && (
-                <p className="font-medium">{personalDetails.communication_address.line2}</p>
+              <p className="font-medium">{personalDetails?.current_address?.street || 'Not specified'}</p>
+              {personalDetails?.current_address?.line2 && (
+                <p className="font-medium">{personalDetails.current_address.line2}</p>
               )}
-              {personalDetails.communication_address.line3 && (
-                <p className="font-medium">{personalDetails.communication_address.line3}</p>
+              {personalDetails?.current_address?.line3 && (
+                <p className="font-medium">{personalDetails.current_address.line3}</p>
               )}
               <p className="font-medium">
-                {personalDetails.communication_address.city}, {personalDetails.communication_address.state} - {personalDetails.communication_address.pincode}
+                {personalDetails?.current_address?.city || 'Not specified'}, {personalDetails?.current_address?.state || 'Not specified'} - {personalDetails?.current_address?.pincode || 'Not specified'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Permanent Address */}
+        {personalDetails && (
+          <div className="border-b pb-4">
+            <h2 className="text-xl font-semibold mb-4">Permanent Address</h2>
+            <div>
+              <p className="font-medium">{personalDetails?.permanent_address?.street || 'Not specified'}</p>
+              {personalDetails?.permanent_address?.line2 && (
+                <p className="font-medium">{personalDetails.permanent_address.line2}</p>
+              )}
+              {personalDetails?.permanent_address?.line3 && (
+                <p className="font-medium">{personalDetails.permanent_address.line3}</p>
+              )}
+              <p className="font-medium">
+                {personalDetails?.permanent_address?.city || 'Not specified'}, {personalDetails?.permanent_address?.state || 'Not specified'} - {personalDetails?.permanent_address?.pincode || 'Not specified'}
               </p>
             </div>
           </div>
@@ -974,10 +1145,10 @@ export default function PrintApplication() {
           <div className="border-b pb-4">
             <h2 className="text-xl font-semibold mb-4">Academic Details</h2>
             
-            {/* Qualifications */}
+            {/* Academic Qualifications Section */}
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Qualifications</h3>
-              {academicDetails.qualifications.map((qual, index) => (
+              {(academicDetails?.qualifications || []).map((qual, index) => (
                 <div key={index} className="mb-4 p-3 bg-gray-50 rounded">
                   <p className="font-medium">{qual.standard} - {qual.degree_name}</p>
                   <p className="text-gray-600">{qual.university}</p>
@@ -989,33 +1160,10 @@ export default function PrintApplication() {
               ))}
             </div>
 
-            {/* Qualifying Exams */}
-            <div className="mb-6">
-              <h3 className="text-lg font-medium mb-2">Qualifying Exams</h3>
-              {academicDetails.qualifying_exams.map((exam, index) => (
-                <div key={index} className="mb-4 p-3 bg-gray-50 rounded">
-                  <p className="font-medium">{exam.exam_type}</p>
-                  <p className="text-gray-600">Registration No: {exam.registration_no}</p>
-                  <p className="text-gray-600">Year: {exam.year_of_qualification}</p>
-                  
-                  {/* Exam-specific details */}
-                  {exam.exam_type === 'NET' && (
-                    <>
-                      <p className="text-gray-600">NET Type: {exam.net_details?.type}</p>
-                      <p className="text-gray-600">Subject: {exam.net_details?.subject}</p>
-                      <p className="text-gray-600">Score: {exam.net_details?.score}</p>
-                      <p className="text-gray-600">Rank: {exam.net_details?.rank}</p>
-                    </>
-                  )}
-                  {/* Add other exam types as needed */}
-                </div>
-              ))}
-            </div>
-
             {/* Experience */}
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Experience</h3>
-              {academicDetails.experience.map((exp, index) => (
+              {(academicDetails?.experience || []).map((exp, index) => (
                 <div key={index} className="mb-4 p-3 bg-gray-50 rounded">
                   <p className="font-medium">{exp.type}</p>
                   <p className="text-gray-600">Organization: {exp.organisation}</p>
@@ -1031,7 +1179,7 @@ export default function PrintApplication() {
             {/* Publications */}
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Publications</h3>
-              {academicDetails.publications.map((pub, index) => (
+              {(academicDetails?.publications || []).map((pub, index) => (
                 <div key={index} className="mb-4 p-3 bg-gray-50 rounded">
                   <p className="font-medium">{pub.type}</p>
                   <p className="text-gray-600">Title: {pub.paper_title}</p>
@@ -1061,19 +1209,19 @@ export default function PrintApplication() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Branch</p>
-                      <p className="text-gray-700">{academicDetails?.bachelors_branch || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.branch || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Aggregate/CGPA</p>
-                      <p className="text-gray-700">{academicDetails?.bachelors_aggregate || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.cgpa || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Class</p>
-                      <p className="text-gray-700">{academicDetails?.bachelors_class || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.class || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">% of Marks/GPA</p>
-                      <p className="text-gray-700">{academicDetails?.bachelors_percentage || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.aggregate?.percentage || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -1094,14 +1242,14 @@ export default function PrintApplication() {
                         </thead>
                         <tbody>
                           <tr>
-                            <td className="border p-2">{academicDetails?.bachelors_sem1 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem2 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem3 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem4 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem5 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem6 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem7 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.bachelors_sem8 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.I?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.II?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.III?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.IV?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.V?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VI?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VII?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.examination_results?.ug?.semesters?.VIII?.marks || '-'}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -1115,19 +1263,19 @@ export default function PrintApplication() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Branch</p>
-                      <p className="text-gray-700">{academicDetails?.masters_branch || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.branch || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Aggregate/CGPA</p>
-                      <p className="text-gray-700">{academicDetails?.masters_aggregate || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.cgpa || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Class</p>
-                      <p className="text-gray-700">{academicDetails?.masters_class || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.class || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">% of Marks/GPA</p>
-                      <p className="text-gray-700">{academicDetails?.masters_percentage || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.aggregate?.percentage || 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -1144,10 +1292,10 @@ export default function PrintApplication() {
                         </thead>
                         <tbody>
                           <tr>
-                            <td className="border p-2">{academicDetails?.masters_sem1 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.masters_sem2 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.masters_sem3 || '-'}</td>
-                            <td className="border p-2">{academicDetails?.masters_sem4 || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.I?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.II?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.III?.marks || '-'}</td>
+                            <td className="border p-2">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.examination_results?.pg?.semesters?.IV?.marks || '-'}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -1158,7 +1306,28 @@ export default function PrintApplication() {
                 {/* Other Degree/Diploma */}
                 <div>
                   <h4 className="font-medium mb-2">Other Degree/Diploma</h4>
-                  <p className="text-gray-700">{academicDetails?.other_degree || 'Not specified'}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Degree Name</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.degree_name || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Branch</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.branch || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Aggregate/CGPA</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.aggregate?.cgpa || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Class</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.aggregate?.class || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">% of Marks/GPA</p>
+                      <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'Other')?.examination_results?.other?.aggregate?.percentage || 'Not specified'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1173,11 +1342,15 @@ export default function PrintApplication() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Score</p>
-                      <p className="text-gray-700">{academicDetails?.gate_score || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'GATE')?.score || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Qualifying Year</p>
-                      <p className="text-gray-700">{academicDetails?.gate_year || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'GATE')?.qualifying_year || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date of Exam</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'GATE')?.date_of_exam ? new Date(academicDetails.additional_qualifications.find(q => q.exam_type === 'GATE').date_of_exam).toLocaleDateString() : 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
@@ -1187,16 +1360,16 @@ export default function PrintApplication() {
                   <h4 className="font-medium mb-2">NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Examination</p>
-                      <p className="text-gray-700">{academicDetails?.net_exam || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Date of Exam</p>
-                      <p className="text-gray-700">{academicDetails?.net_date || 'Not specified'}</p>
+                      <p className="text-sm text-gray-600">Score</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.score || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Qualifying Year</p>
-                      <p className="text-gray-700">{academicDetails?.net_year || 'Not specified'}</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.qualifying_year || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date of Exam</p>
+                      <p className="text-gray-700">{academicDetails?.additional_qualifications?.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other')?.date_of_exam ? new Date(academicDetails.additional_qualifications.find(q => q.exam_type === 'NET/CSIR/UGC/JRF/Lectureship/NBHM/Other').date_of_exam).toLocaleDateString() : 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
@@ -1210,11 +1383,11 @@ export default function PrintApplication() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">UG Project Title</p>
-                    <p className="text-gray-700">{academicDetails?.ug_project_title || 'Not specified'}</p>
+                    <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'UG')?.project_title || 'Not specified'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">PG Project Title</p>
-                    <p className="text-gray-700">{academicDetails?.pg_project_title || 'Not specified'}</p>
+                    <p className="text-gray-700">{academicDetails?.qualifications?.find(q => q.standard === 'PG')?.project_title || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -1227,11 +1400,11 @@ export default function PrintApplication() {
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Department</p>
-                    <p className="text-gray-700">{academicDetails?.research_department || 'Not specified'}</p>
+                    <p className="text-gray-700">{academicDetails?.research_interest?.branch || 'Not specified'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Specialization/Area of Research</p>
-                    <p className="text-gray-700">{academicDetails?.research_area || 'Not specified'}</p>
+                    <p className="text-gray-700">{academicDetails?.research_interest?.area || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -1248,7 +1421,7 @@ export default function PrintApplication() {
             <h3 className="text-lg font-medium mb-2">Academic Documents</h3>
             <div className="space-y-4">
               {/* Qualification Documents */}
-              {academicDetails?.qualifications.map((qual, index) => (
+              {(academicDetails?.qualifications || []).map((qual, index) => (
                 qual.document_url && (
                   <div key={`qual-${index}`} className="p-3 bg-gray-50 rounded">
                     <div className="flex justify-between items-center mb-2">
@@ -1276,7 +1449,7 @@ export default function PrintApplication() {
               ))}
 
               {/* Experience Documents */}
-              {academicDetails?.experience.map((exp, index) => (
+              {(academicDetails?.experience || []).map((exp, index) => (
                 exp.experience_certificate_url && (
                   <div key={`exp-${index}`} className="p-3 bg-gray-50 rounded">
                     <div className="flex justify-between items-center mb-2">
@@ -1304,7 +1477,7 @@ export default function PrintApplication() {
               ))}
 
               {/* Publication Documents */}
-              {academicDetails?.publications.map((pub, index) => (
+              {(academicDetails?.publications || []).map((pub, index) => (
                 pub.document_url && (
                   <div key={`pub-${index}`} className="p-3 bg-gray-50 rounded">
                     <div className="flex justify-between items-center mb-2">
@@ -1332,124 +1505,6 @@ export default function PrintApplication() {
               ))}
             </div>
           </div>
-
-          {/* Payment Documents */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">Payment Documents</h3>
-            <div className="p-3 bg-gray-50 rounded">
-              <div className="flex justify-between items-center mb-2">
-                <p className="font-medium">Demand Draft</p>
-                <div className="flex items-center gap-2">
-                  {personalDetails?.dd_url ? (
-                    <a 
-                      href={ensureHttps(personalDetails.dd_url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline text-sm"
-                    >
-                      View Document
-                    </a>
-                  ) : (
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleDDUpload}
-                      disabled={isUploading}
-                      className="h-9 text-sm"
-                    />
-                  )}
-                </div>
-              </div>
-              {personalDetails?.dd_url && (
-                <div className="w-full h-[500px] border border-gray-200 rounded overflow-hidden">
-                  <object
-                    data={`${ensureHttps(personalDetails.dd_url)}#toolbar=0&navpanes=0`}
-                    type="application/pdf"
-                    className="w-full h-full"
-                  >
-                    <p className="text-sm text-gray-600">Unable to display PDF file. <a href={ensureHttps(personalDetails.dd_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                  </object>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* List of Enclosures */}
-        <div className="border rounded-lg p-6 mt-6">
-          <h2 className="text-xl font-semibold mb-4">14. List of Enclosures (tick if enclosed)</h2>
-          <div className="space-y-4">
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <div>
-                <p className="font-medium">a) Online Transaction Detail</p>
-                <p className="text-sm text-gray-600 ml-6">
-                  A non-refundable application fee of Rs. 500/- (SC/ST/PH candidates are exempted from application fee) by means of online transaction
-                </p>
-                <p className="text-sm text-gray-600 ml-6">
-                  Account Name: IRG NIT Nagaland, Account Number: 35747839287, IFSC Code: SBIN0007543, Branch: SBI, Chumukedima
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">b) Self-Attested copy of Matriculation Marksheet and Certificate</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">c) Self-Attested copy of +2/ Intermediate/Diploma Marksheet and Certificate</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">d) Self-Attested copy of Bachelor's Degree Marksheet and Certificate</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">e) Self-Attested copy of Master's Degree Marksheet and Certificate</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">f) Self-Attested copy of GATE score/NET etc</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">g) Self-Attested copy of Doctor's Certificate (in case of PH)</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">h) Self-Attested copy of Community Certificate</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">i) Self-Attested copy of Experience Letter (if any)</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">j) Self-Attested Government ID</p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" />
-              <p className="font-medium">k) Research Publication(s)</p>
-            </div>
-
-            <div className="mt-4">
-              <p className="font-medium">l) Mention the Department and Mode of Ph.D at the top of the envelope</p>
-            </div>
-
-            <div className="mt-4">
-              <p className="font-medium">Additional Information if any (Attach Separate sheet if required)</p>
-            </div>
-          </div>
         </div>
 
         {/* Declaration */}
@@ -1464,6 +1519,8 @@ export default function PrintApplication() {
               <Input
                 id="place"
                 name="place"
+                value={declaration.place}
+                onChange={handleDeclarationChange}
                 placeholder="Enter place"
                 className="w-full"
               />
@@ -1474,10 +1531,75 @@ export default function PrintApplication() {
                 id="date"
                 name="date"
                 type="date"
+                value={declaration.date}
+                onChange={handleDeclarationChange}
                 className="w-full"
               />
             </div>
           </div>
+        </div>
+
+        {/* Payment Section */}
+        <div className="border-b pb-4">
+          <h2 className="text-xl font-semibold mb-4">Payment Details</h2>
+          <form onSubmit={handlePaymentUpdate} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="transaction_id">Transaction ID</Label>
+                <Input
+                  id="transaction_id"
+                  name="transaction_id"
+                  value={paymentForm.transaction_id}
+                  onChange={handlePaymentChange}
+                  placeholder="Enter transaction ID"
+                />
+              </div>
+              <div>
+                <Label htmlFor="transaction_date">Transaction Date</Label>
+                <Input
+                  id="transaction_date"
+                  name="transaction_date"
+                  type="date"
+                  value={paymentForm.transaction_date}
+                  onChange={handlePaymentChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="issued_bank">Issued Bank</Label>
+                <Input
+                  id="issued_bank"
+                  name="issued_bank"
+                  value={paymentForm.issued_bank}
+                  onChange={handlePaymentChange}
+                  placeholder="Enter bank name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="amount">Amount</Label>
+                <Input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  value={paymentForm.amount}
+                  onChange={handlePaymentChange}
+                  placeholder="Enter amount"
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Input
+                  id="status"
+                  name="status"
+                  value={paymentForm.status}
+                  onChange={handlePaymentChange}
+                  placeholder="Enter status"
+                />
+              </div>
+            </div>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+              Update Payment Details
+            </Button>
+          </form>
         </div>
       </div>
     </div>

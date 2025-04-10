@@ -9,16 +9,30 @@ const createPayment = async (req, res) => {
         }
 
         // Check if payment already exists for this user
-        const existingPayment = await Payment.findOne({ userid: req.user._id });
+        const existingPayment = await Payment.findOne({ user: req.user._id });
         if (existingPayment) {
             return res.status(400).json({ 
                 message: 'Payment details already exist for this user' 
             });
         }
 
+        // Validate required fields
+        if (!req.body.screenshot?.url) {
+            return res.status(400).json({ 
+                message: 'Transaction screenshot URL is required' 
+            });
+        }
+
         const payment = await Payment.create({
-            userid: req.user._id,
-            ...req.body
+            user: req.user._id,
+            transaction_id: req.body.transaction_id,
+            transaction_date: req.body.transaction_date,
+            issued_bank: req.body.issued_bank,
+            amount: req.body.amount,
+            screenshot: {
+                url: req.body.screenshot.url
+            },
+            status: 'pending'
         });
 
         return res.status(201).json({
@@ -37,12 +51,19 @@ const createPayment = async (req, res) => {
 
 const getPayment = async (req, res) => {
     try {
+        console.log('Getting payment for user:', req.user?._id);
+        
         if (!req.user?._id) {
+            console.log('No user ID found in request');
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const payment = await Payment.findOne({ userid: req.user._id });
+        console.log('Searching for payment with user ID:', req.user._id);
+        const payment = await Payment.findOne({ user: req.user._id });
+        
+        console.log('Payment found:', payment);
         if (!payment) {
+            console.log('No payment found for user');
             return res.status(404).json({ message: 'Payment details not found' });
         }
 
@@ -116,7 +137,7 @@ const updatePayment = async (req, res) => {
         }
 
         const payment = await Payment.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             req.body,
             { new: true }
         );

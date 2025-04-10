@@ -30,10 +30,7 @@ const PaymentSchema = new mongoose.Schema({
             type: String,
             required: [true, 'Transaction screenshot is required']
         },
-        public_id: {
-            type: String,
-            required: [true, 'Transaction screenshot public ID is required']
-        }
+        
     },
     status: {
         type: String,

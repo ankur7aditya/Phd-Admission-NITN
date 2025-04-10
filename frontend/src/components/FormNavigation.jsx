@@ -9,6 +9,7 @@ export default function FormNavigation() {
     { path: '/admission-form', label: 'Personal Details' },
     { path: '/academic-details', label: 'Academic Details' },
     { path: '/payment', label: 'Payment' },
+    { path: '/enclosures', label: 'Enclosures' },
     { path: '/print-application', label: 'Print Application' }
   ];
 

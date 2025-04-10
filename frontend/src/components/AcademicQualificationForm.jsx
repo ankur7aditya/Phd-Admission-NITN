@@ -190,86 +190,59 @@ const scrollToError = (fieldId) => {
 export default function AcademicQualificationForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    qualifications: [{
-      standard: '',
-      degree_name: '',
-      university: '',
-      year_of_completion: '',
-      marks_obtained: '',
-      marks_type: '',
-      branch: '',
-      program_duration_months: '',
-      document_url: ''
-    }],
-    qualifying_exams: [{
-      exam_type: '',
-      registration_no: '',
-      year_of_qualification: '',
-      net_details: {
-        type: '',
-        subject: '',
-        score: '',
-        rank: ''
-        },
-        gate_details: {
-        marks_out_of_100: '',
-        qualifying_marks: '',
-        gate_rank: ''
-      },
-      cat_details: {
-        total_percentile: '',
-        quant_percentile: '',
-        di_lr_percentile: '',
-        verbal_percentile: ''
-        },
-        gmat_details: {
-        total_score: '',
-        verbal_score: '',
-        quantitative_score: '',
-        analytical_writing_score: '',
-        integrated_reasoning_score: ''
-      },
-      document_url: ''
-    }],
-    experience: [{
-      type: '',
-      organisation: '',
-      place: '',
-      period_from: '',
-      period_to: '',
-      designation: '',
-      monthly_compensation: '',
-      nature_of_work: '',
-      experience_certificate_url: ''
-    }],
-    publications: [{
-      type: '',
-      paper_title: '',
-      affiliation: '',
-      acceptance_year: '',
-      document_url: ''
-    }],
-    bachelors_branch: '',
-    bachelors_aggregate: '',
-    bachelors_class: '',
-    bachelors_percentage: '',
-    bachelors_sem1: '',
-    bachelors_sem2: '',
-    bachelors_sem3: '',
-    bachelors_sem4: '',
-    bachelors_sem5: '',
-    bachelors_sem6: '',
-    bachelors_sem7: '',
-    bachelors_sem8: '',
-    masters_branch: '',
-    masters_aggregate: '',
-    masters_class: '',
-    masters_percentage: '',
-    masters_sem1: '',
-    masters_sem2: '',
-    masters_sem3: '',
-    masters_sem4: '',
-    other_degree: ''
+    research_interest: {
+      branch: "",
+      area: ""
+    },
+    qualifications: [
+      {
+        standard: "",
+        degree_name: "",
+        university: "",
+        year_of_completion: "",
+        marks_type: "",
+        marks_obtained: "",
+        max_cgpa: 10,
+        branch: "",
+        program_duration_months: "",
+        document_url: "",
+        examination_results: {
+          ug: {
+            branch: "",
+            semesters: {
+              I: { marks: "", class: "" },
+              II: { marks: "", class: "" },
+              III: { marks: "", class: "" },
+              IV: { marks: "", class: "" },
+              V: { marks: "", class: "" },
+              VI: { marks: "", class: "" },
+              VII: { marks: "", class: "" },
+              VIII: { marks: "", class: "" }
+            },
+            aggregate: { cgpa: "", class: "", percentage: "" }
+          },
+          pg: {
+            branch: "",
+            semesters: {
+              I: { marks: "", class: "" },
+              II: { marks: "", class: "" },
+              III: { marks: "", class: "" },
+              IV: { marks: "", class: "" }
+            },
+            aggregate: { cgpa: "", class: "", percentage: "" }
+          },
+          other: {
+            degree_name: "",
+            branch: "",
+            semesters: [],
+            aggregate: { cgpa: "", class: "", percentage: "" }
+          }
+        }
+      }
+    ],
+    additional_qualifications: [],
+    experience: [],
+    publications: []
   });
 
   const [errors, setErrors] = useState({});
@@ -450,6 +423,38 @@ export default function AcademicQualificationForm() {
           branch: "",
           program_duration_months: "",
           document_url: "",
+          examination_results: {
+            ug: {
+              branch: "",
+              semesters: {
+                I: { marks: "", class: "" },
+                II: { marks: "", class: "" },
+                III: { marks: "", class: "" },
+                IV: { marks: "", class: "" },
+                V: { marks: "", class: "" },
+                VI: { marks: "", class: "" },
+                VII: { marks: "", class: "" },
+                VIII: { marks: "", class: "" }
+              },
+              aggregate: { cgpa: "", class: "", percentage: "" }
+            },
+            pg: {
+              branch: "",
+              semesters: {
+                I: { marks: "", class: "" },
+                II: { marks: "", class: "" },
+                III: { marks: "", class: "" },
+                IV: { marks: "", class: "" }
+              },
+              aggregate: { cgpa: "", class: "", percentage: "" }
+            },
+            other: {
+              degree_name: "",
+              branch: "",
+              semesters: [],
+              aggregate: { cgpa: "", class: "", percentage: "" }
+            }
+          }
         }
       ]
     }));
@@ -956,6 +961,104 @@ export default function AcademicQualificationForm() {
     }
   };
 
+  const handleExaminationResultChange = (e, index, level, field, semester = null) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      qualifications: prev.qualifications.map((qual, i) => {
+        if (i === index) {
+          if (semester) {
+            return {
+              ...qual,
+              examination_results: {
+                ...qual.examination_results,
+                [level]: {
+                  ...qual.examination_results[level],
+                  semesters: {
+                    ...qual.examination_results[level].semesters,
+                    [semester]: {
+                      ...qual.examination_results[level].semesters[semester],
+                      [name]: value
+                    }
+                  }
+                }
+              }
+            };
+          } else if (field === 'aggregate') {
+            return {
+              ...qual,
+              examination_results: {
+                ...qual.examination_results,
+                [level]: {
+                  ...qual.examination_results[level],
+                  aggregate: {
+                    ...qual.examination_results[level].aggregate,
+                    [name]: value
+                  }
+                }
+              }
+            };
+          } else {
+            return {
+              ...qual,
+              examination_results: {
+                ...qual.examination_results,
+                [level]: {
+                  ...qual.examination_results[level],
+                  [name]: value
+                }
+              }
+            };
+          }
+        }
+        return qual;
+      })
+    }));
+  };
+
+  const handleAdditionalQualificationChange = (e, index) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      additional_qualifications: prev.additional_qualifications.map((qual, i) => 
+        i === index ? { ...qual, [name]: value } : qual
+      )
+    }));
+  };
+
+  const addAdditionalQualification = () => {
+    setFormData(prev => ({
+      ...prev,
+      additional_qualifications: [
+        ...prev.additional_qualifications,
+        {
+          exam_type: "GATE",
+          score: "",
+          qualifying_year: new Date().getFullYear(),
+          date_of_exam: new Date().toISOString().split('T')[0]
+        }
+      ]
+    }));
+  };
+
+  const deleteAdditionalQualification = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      additional_qualifications: prev.additional_qualifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleResearchInterestChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      research_interest: {
+        ...prev.research_interest,
+        [name]: value
+      }
+    }));
+  };
+
   const validateForm = () => {
     const errors = {};
     let hasErrors = false;
@@ -966,17 +1069,6 @@ export default function AcademicQualificationForm() {
         const error = validateField(field, qual[field], 'qualification');
         if (error) {
           errors[`qualifications.${index}.${field}`] = error;
-          hasErrors = true;
-        }
-      });
-    });
-
-    // Validate qualifying exams
-    formData.qualifying_exams.forEach((exam, index) => {
-      Object.keys(exam).forEach(field => {
-        const error = validateField(field, exam[field], 'exam');
-        if (error) {
-          errors[`qualifying_exams.${index}.${field}`] = error;
           hasErrors = true;
         }
       });
@@ -1022,9 +1114,39 @@ export default function AcademicQualificationForm() {
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        {/* Qualifications */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
+          {/* Research Interest Area */}
+          <div className="space-y-6">
+            <h2 className="text-lg font-medium text-gray-700">Research Interest Area</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="research-branch" className="text-sm font-medium text-gray-700">Branch</Label>
+                <Input
+                  id="research-branch"
+                  name="branch"
+                  value={formData.research_interest?.branch || ""}
+                  onChange={handleResearchInterestChange}
+                  placeholder="Enter your branch (e.g., CSE, ECE, EIE, EEE, ME)"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="research-area" className="text-sm font-medium text-gray-700">Research Area</Label>
+                <Input
+                  id="research-area"
+                  name="area"
+                  value={formData.research_interest?.area || ""}
+                  onChange={handleResearchInterestChange}
+                  placeholder="Enter your research area"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Qualifications */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-700">Qualifications</h2>
               <Button 
                 type="button" 
@@ -1032,11 +1154,11 @@ export default function AcademicQualificationForm() {
                 variant="outline"
                 className="text-sm px-3 py-1"
               >
-              Add Qualification
-            </Button>
-          </div>
+                Add Qualification
+              </Button>
+            </div>
 
-          {formData.qualifications.map((qualification, index) => (
+            {formData.qualifications.map((qualification, index) => (
               <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
                 <Button
                   type="button"
@@ -1157,6 +1279,131 @@ export default function AcademicQualificationForm() {
                     </div>
                   )}
 
+                  {/* Semester Marks Section */}
+                  {qualification.standard === "UG" && (
+                    <div className="col-span-2">
+                      <h3 className="text-lg font-semibold mb-4">UG Semester-wise Marks</h3>
+                      <div className="grid grid-cols-4 gap-4">
+                        {['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'].map((sem) => (
+                          <div key={`ug-sem-${sem}`} className="border p-4 rounded">
+                            <h4 className="font-medium mb-2">Semester {sem}</h4>
+                            <div className="space-y-2">
+                              <div>
+                                <Label htmlFor={`ug-sem-${sem}-marks`}>Marks</Label>
+                                <Input
+                                  id={`ug-sem-${sem}-marks`}
+                                  name="marks"
+                                  value={qualification.examination_results?.ug?.semesters?.[sem]?.marks || ''}
+                                  onChange={(e) => handleExaminationResultChange(e, index, 'ug', 'marks', sem)}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`ug-sem-${sem}-class`}>Class</Label>
+                                <Input
+                                  id={`ug-sem-${sem}-class`}
+                                  name="class"
+                                  value={qualification.examination_results?.ug?.semesters?.[sem]?.class || ''}
+                                  onChange={(e) => handleExaminationResultChange(e, index, 'ug', 'class', sem)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor={`ug-aggregate-cgpa`}>Aggregate CGPA</Label>
+                          <Input
+                            id={`ug-aggregate-cgpa`}
+                            name="cgpa"
+                            value={qualification.examination_results?.ug?.aggregate?.cgpa || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'ug', 'aggregate')}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`ug-aggregate-class`}>Class</Label>
+                          <Input
+                            id={`ug-aggregate-class`}
+                            name="class"
+                            value={qualification.examination_results?.ug?.aggregate?.class || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'ug', 'aggregate')}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`ug-aggregate-percentage`}>Percentage</Label>
+                          <Input
+                            id={`ug-aggregate-percentage`}
+                            name="percentage"
+                            value={qualification.examination_results?.ug?.aggregate?.percentage || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'ug', 'aggregate')}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {qualification.standard === "PG" && (
+                    <div className="col-span-2">
+                      <h3 className="text-lg font-semibold mb-4">PG Semester-wise Marks</h3>
+                      <div className="grid grid-cols-4 gap-4">
+                        {['I', 'II', 'III', 'IV'].map((sem) => (
+                          <div key={`pg-sem-${sem}`} className="border p-4 rounded">
+                            <h4 className="font-medium mb-2">Semester {sem}</h4>
+                            <div className="space-y-2">
+                              <div>
+                                <Label htmlFor={`pg-sem-${sem}-marks`}>Marks</Label>
+                                <Input
+                                  id={`pg-sem-${sem}-marks`}
+                                  name="marks"
+                                  value={qualification.examination_results?.pg?.semesters?.[sem]?.marks || ''}
+                                  onChange={(e) => handleExaminationResultChange(e, index, 'pg', 'marks', sem)}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`pg-sem-${sem}-class`}>Class</Label>
+                                <Input
+                                  id={`pg-sem-${sem}-class`}
+                                  name="class"
+                                  value={qualification.examination_results?.pg?.semesters?.[sem]?.class || ''}
+                                  onChange={(e) => handleExaminationResultChange(e, index, 'pg', 'class', sem)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor={`pg-aggregate-cgpa`}>Aggregate CGPA</Label>
+                          <Input
+                            id={`pg-aggregate-cgpa`}
+                            name="cgpa"
+                            value={qualification.examination_results?.pg?.aggregate?.cgpa || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'pg', 'aggregate')}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`pg-aggregate-class`}>Class</Label>
+                          <Input
+                            id={`pg-aggregate-class`}
+                            name="class"
+                            value={qualification.examination_results?.pg?.aggregate?.class || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'pg', 'aggregate')}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`pg-aggregate-percentage`}>Percentage</Label>
+                          <Input
+                            id={`pg-aggregate-percentage`}
+                            name="percentage"
+                            value={qualification.examination_results?.pg?.aggregate?.percentage || ''}
+                            onChange={(e) => handleExaminationResultChange(e, index, 'pg', 'aggregate')}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                       <Label htmlFor={`qualification-${index}-branch`} className="text-sm font-medium text-gray-700">Branch/Specialization</Label>
                     <Input
@@ -1206,835 +1453,402 @@ export default function AcademicQualificationForm() {
                 </div>
               </div>
             ))}
-        </div>
+          </div>
 
-        {/* Examination Results */}
-        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-          <h2 className="text-lg font-semibold">Examination Results</h2>
-          
-          {/* Bachelor's Degree */}
-          <div className="space-y-4">
-            <h3 className="font-medium">a) Bachelor's Degree: B.E./B.Tech./B.Sc./Others</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bachelors_branch">Branch</Label>
-                    <Input
-                  id="bachelors_branch"
-                  name="bachelors_branch"
-                  value={formData.bachelors_branch}
-                  onChange={handleChange}
-                />
-              </div>
+          {/* Additional Qualifications */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-medium text-gray-700">Additional Qualifications</h2>
+              <Button 
+                type="button" 
+                onClick={addAdditionalQualification} 
+                variant="outline"
+                className="text-sm px-3 py-1"
+              >
+                Add Qualification
+              </Button>
+            </div>
+
+            {formData.additional_qualifications.map((qualification, index) => (
+              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={() => deleteAdditionalQualification(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`additional-qualification-${index}-exam_type`} className="text-sm font-medium text-gray-700">Exam Type</Label>
+                    <Select
+                      value={qualification.exam_type}
+                      onValueChange={(value) => handleAdditionalQualificationChange(
+                        { target: { name: 'exam_type', value } },
+                        index
+                      )}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select exam type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="GATE">GATE</SelectItem>
+                        <SelectItem value="NET/CSIR/UGC/JRF/Lectureship/NBHM/Other">NET/CSIR/UGC/JRF/Lectureship/NBHM/Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full border">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-2">Semester</th>
-                    <th className="border p-2">I</th>
-                    <th className="border p-2">II</th>
-                    <th className="border p-2">III</th>
-                    <th className="border p-2">IV</th>
-                    <th className="border p-2">V</th>
-                    <th className="border p-2">VI</th>
-                    <th className="border p-2">VII</th>
-                    <th className="border p-2">VIII</th>
-                    <th className="border p-2">Aggregate/CGPA</th>
-                    <th className="border p-2">Class</th>
-                    <th className="border p-2">% of Marks/GPA</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border p-2">Marks/CGPA</td>
-                    <td className="border p-2">
-                    <Input
-                        type="text"
-                        name="bachelors_sem1"
-                        value={formData.bachelors_sem1}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem2"
-                        value={formData.bachelors_sem2}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem3"
-                        value={formData.bachelors_sem3}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem4"
-                        value={formData.bachelors_sem4}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem5"
-                        value={formData.bachelors_sem5}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem6"
-                        value={formData.bachelors_sem6}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem7"
-                        value={formData.bachelors_sem7}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_sem8"
-                        value={formData.bachelors_sem8}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="bachelors_aggregate"
-                        value={formData.bachelors_aggregate}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
+                  {qualification.exam_type === "GATE" && (
+                    <div>
+                      <Label htmlFor={`additional-qualification-${index}-score`} className="text-sm font-medium text-gray-700">Score</Label>
                       <Input
-                        type="text"
-                        name="bachelors_class"
-                        value={formData.bachelors_class}
-                        onChange={handleChange}
-                        className="w-full"
+                        id={`additional-qualification-${index}-score`}
+                        name="score"
+                        type="number"
+                        value={qualification.score}
+                        onChange={(e) => handleAdditionalQualificationChange(e, index)}
+                        required
                       />
-                    </td>
-                    <td className="border p-2">
-                      <Input
-                        type="text"
-                        name="bachelors_percentage"
-                        value={formData.bachelors_percentage}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-                      </div>
-          </div>
-
-          {/* Master's Degree */}
-          <div className="space-y-4 mt-6">
-            <h3 className="font-medium">b) Master's Degree: M.E./M.Tech./M.S./M.Sc./Others</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="masters_branch">Branch</Label>
-                        <Input
-                  id="masters_branch"
-                  name="masters_branch"
-                  value={formData.masters_branch}
-                  onChange={handleChange}
-                        />
-                      </div>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="min-w-full border">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-2">Semester</th>
-                    <th className="border p-2">I</th>
-                    <th className="border p-2">II</th>
-                    <th className="border p-2">III</th>
-                    <th className="border p-2">IV</th>
-                    <th className="border p-2">Aggregate/CGPA</th>
-                    <th className="border p-2">Class</th>
-                    <th className="border p-2">% of Marks/GPA</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border p-2">Marks/CGPA</td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_sem1"
-                        value={formData.masters_sem1}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_sem2"
-                        value={formData.masters_sem2}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_sem3"
-                        value={formData.masters_sem3}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_sem4"
-                        value={formData.masters_sem4}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_aggregate"
-                        value={formData.masters_aggregate}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                        <Input
-                        type="text"
-                        name="masters_class"
-                        value={formData.masters_class}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border p-2">
-                      <Input
-                        type="text"
-                        name="masters_percentage"
-                        value={formData.masters_percentage}
-                        onChange={handleChange}
-                        className="w-full"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-                      </div>
-          </div>
-
-          {/* Other Degree/Diploma */}
-          <div className="space-y-4 mt-6">
-            <h3 className="font-medium">c) Other degree/diploma programme, if any:</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="other_degree">Degree/Diploma Details</Label>
-                        <Input
-                  id="other_degree"
-                  name="other_degree"
-                  value={formData.other_degree}
-                  onChange={handleChange}
-                />
-                      </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Qualifications */}
-        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-          <h2 className="text-lg font-semibold">Additional Qualifications</h2>
-          
-          {/* GATE Details */}
-          <div className="space-y-4">
-            <h3 className="font-medium">1. GATE</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="gate_score">Score</Label>
-                        <Input
-                  id="gate_score"
-                  name="gate_score"
-                  value={formData.gate_score}
-                  onChange={handleChange}
-                />
-                      </div>
-              <div className="space-y-2">
-                <Label htmlFor="gate_qualifying_year">Qualifying Year</Label>
-                        <Input
-                  id="gate_qualifying_year"
-                  name="gate_qualifying_year"
-                          type="number"
-                  value={formData.gate_qualifying_year}
-                  onChange={handleChange}
-                        />
-                      </div>
                     </div>
-          </div>
+                  )}
 
-          {/* NET/CSIR/UGC/JRF/Lectureship/NBHM/Others */}
-          <div className="space-y-4 mt-6">
-            <h3 className="font-medium">2. NET/CSIR/UGC/JRF/Lectureship/NBHM/Others</h3>
-            <div className="space-y-4">
-              <div className="flex flex-col space-y-2">
-                <Label>Select Examination</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="net"
-                      name="net_exam"
-                      value="net"
-                      checked={formData.net_exam === "net"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  {qualification.exam_type === "NET/CSIR/UGC/JRF/Lectureship/NBHM/Other" && (
+                    <div>
+                      <Label htmlFor={`additional-qualification-${index}-date_of_exam`} className="text-sm font-medium text-gray-700">Date of Exam</Label>
+                      <Input
+                        id={`additional-qualification-${index}-date_of_exam`}
+                        name="date_of_exam"
+                        type="date"
+                        value={qualification.date_of_exam}
+                        onChange={(e) => handleAdditionalQualificationChange(e, index)}
+                        required
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <Label htmlFor={`additional-qualification-${index}-qualifying_year`} className="text-sm font-medium text-gray-700">Qualifying Year</Label>
+                    <Input
+                      id={`additional-qualification-${index}-qualifying_year`}
+                      name="qualifying_year"
+                      type="number"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      value={qualification.qualifying_year}
+                      onChange={(e) => handleAdditionalQualificationChange(e, index)}
+                      required
                     />
-                    <Label htmlFor="net">NET</Label>
-                      </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="csir"
-                      name="net_exam"
-                      value="csir"
-                      checked={formData.net_exam === "csir"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="csir">CSIR</Label>
-                      </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="ugc"
-                      name="net_exam"
-                      value="ugc"
-                      checked={formData.net_exam === "ugc"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="ugc">UGC</Label>
-                      </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="jrf"
-                      name="net_exam"
-                      value="jrf"
-                      checked={formData.net_exam === "jrf"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="jrf">JRF</Label>
-                      </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="lectureship"
-                      name="net_exam"
-                      value="lectureship"
-                      checked={formData.net_exam === "lectureship"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="lectureship">Lectureship</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="nbhm"
-                      name="net_exam"
-                      value="nbhm"
-                      checked={formData.net_exam === "nbhm"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="nbhm">NBHM</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="others"
-                      name="net_exam"
-                      value="others"
-                      checked={formData.net_exam === "others"}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="others">Others</Label>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="exam_date">Date of Exam</Label>
-                  <Input
-                    id="exam_date"
-                    name="exam_date"
-                    type="date"
-                    value={formData.exam_date}
-                    onChange={handleChange}
-                  />
-                    </div>
-                <div className="space-y-2">
-                  <Label htmlFor="qualifying_year">Qualifying Year</Label>
+          {/* Experience */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-medium text-gray-700">Experience</h2>
+              <Button 
+                type="button" 
+                onClick={addExperience} 
+                variant="outline"
+                className="text-sm px-3 py-1"
+              >
+                Add Experience
+              </Button>
+            </div>
+
+            {formData.experience.map((experience, index) => (
+              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={() => deleteExperience(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                    <Select
+                      value={experience.type}
+                      onValueChange={(value) => handleExperienceChange(
+                        { target: { name: 'type', value } },
+                        index
+                      )}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Industry">Industry</SelectItem>
+                        <SelectItem value="Academia">Academia</SelectItem>
+                        <SelectItem value="Research">Research</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {getFieldError(`experience.${index}.type`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.type`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organisation</Label>
                     <Input
-                    id="qualifying_year"
-                    name="qualifying_year"
-                    type="number"
-                    value={formData.qualifying_year}
-                    onChange={handleChange}
-                  />
+                      id={`experience-${index}-organisation`}
+                      name="organisation"
+                      value={experience.organisation}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.organisation`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.organisation`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.organisation`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-place`} className="text-sm font-medium text-gray-700">Place</Label>
+                    <Input
+                      id={`experience-${index}-place`}
+                      name="place"
+                      value={experience.place}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.place`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.place`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.place`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Period From</Label>
+                    <Input
+                      id={`experience-${index}-period_from`}
+                      name="period_from"
+                      type="date"
+                      value={formatDateForInput(experience.period_from)}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.period_from`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.period_from`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.period_from`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">Period To</Label>
+                    <Input
+                      id={`experience-${index}-period_to`}
+                      name="period_to"
+                      type="date"
+                      value={formatDateForInput(experience.period_to)}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-monthly_compensation`} className="text-sm font-medium text-gray-700">Monthly Compensation</Label>
+                    <Input
+                      id={`experience-${index}-monthly_compensation`}
+                      name="monthly_compensation"
+                      type="number"
+                      value={experience.monthly_compensation}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.monthly_compensation`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.monthly_compensation`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.monthly_compensation`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
+                    <Input
+                      id={`experience-${index}-designation`}
+                      name="designation"
+                      value={experience.designation}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.designation`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.designation`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.designation`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`experience-${index}-nature_of_work`} className="text-sm font-medium text-gray-700">Nature of Work</Label>
+                    <Input
+                      id={`experience-${index}-nature_of_work`}
+                      name="nature_of_work"
+                      value={experience.nature_of_work}
+                      onChange={(e) => handleExperienceChange(e, index)}
+                      className={getFieldError(`experience.${index}.nature_of_work`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`experience.${index}.nature_of_work`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.nature_of_work`)}</p>
+                    )}
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label className="text-sm font-medium text-gray-700">Experience Certificate Upload</Label>
+                    <div className="text-xs text-gray-500 mb-2">
+                      Please upload only PDF files (max size: 5MB)
+                    </div>
+                    <Input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleExperienceFileUpload(e, index)}
+                      disabled={isUploading}
+                      className="h-9 text-sm"
+                    />
+                    {experience.experience_certificate_url && (
+                      <div className="mt-2">
+                        <object
+                          data={`${experience.experience_certificate_url}#toolbar=0&navpanes=0`}
+                          type="application/pdf"
+                          className="w-full h-[400px] border border-gray-200 rounded"
+                        >
+                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={experience.experience_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                        </object>
                       </div>
+                    )}
                   </div>
                 </div>
               </div>
-        </div>
+            ))}
+          </div>
 
-        {/* Experience */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium text-gray-700">Experience</h2>
-            <Button 
-              type="button" 
-              onClick={addExperience} 
-              variant="outline"
-              className="text-sm px-3 py-1"
-            >
-              Add Experience
+          {/* Publications */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-medium text-gray-700">Publications</h2>
+              <Button 
+                type="button" 
+                onClick={addPublication} 
+                variant="outline"
+                className="text-sm px-3 py-1"
+              >
+                Add Publication
+              </Button>
+            </div>
+
+            {formData.publications.map((publication, index) => (
+              <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={() => deletePublication(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
+                    <Select
+                      value={publication.type}
+                      onValueChange={(value) => handlePublicationChange(
+                        { target: { name: 'type', value } },
+                        index
+                      )}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Journal">Journal</SelectItem>
+                        <SelectItem value="Conference">Conference</SelectItem>
+                        <SelectItem value="Book">Book</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {getFieldError(`publications.${index}.type`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.type`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`publication-${index}-paper_title`} className="text-sm font-medium text-gray-700">Paper Title</Label>
+                    <Input
+                      id={`publication-${index}-paper_title`}
+                      name="paper_title"
+                      value={publication.paper_title}
+                      onChange={(e) => handlePublicationChange(e, index)}
+                      className={getFieldError(`publications.${index}.paper_title`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`publications.${index}.paper_title`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.paper_title`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`publication-${index}-affiliation`} className="text-sm font-medium text-gray-700">Affiliation</Label>
+                    <Input
+                      id={`publication-${index}-affiliation`}
+                      name="affiliation"
+                      value={publication.affiliation}
+                      onChange={(e) => handlePublicationChange(e, index)}
+                      className={getFieldError(`publications.${index}.affiliation`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`publications.${index}.affiliation`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.affiliation`)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
+                    <Input
+                      id={`publication-${index}-acceptance_year`}
+                      name="acceptance_year"
+                      type="number"
+                      value={publication.acceptance_year}
+                      onChange={(e) => handlePublicationChange(e, index)}
+                      className={getFieldError(`publications.${index}.acceptance_year`) ? "border-red-500" : ""}
+                    />
+                    {getFieldError(`publications.${index}.acceptance_year`) && (
+                      <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.acceptance_year`)}</p>
+                    )}
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label className="text-sm font-medium text-gray-700">Document Upload</Label>
+                    <div className="text-xs text-gray-500 mb-2">
+                      Please upload only PDF files (max size: 5MB)
+                    </div>
+                    <Input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handlePublicationFileUpload(e, index)}
+                      disabled={isUploading}
+                      className="h-9 text-sm"
+                    />
+                    {publication.document_url && (
+                      <div className="mt-2">
+                        <object
+                          data={`${publication.document_url}#toolbar=0&navpanes=0`}
+                          type="application/pdf"
+                          className="w-full h-[400px] border border-gray-200 rounded"
+                        >
+                          <p className="text-sm text-gray-600">Unable to display PDF file. <a href={publication.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
+                        </object>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit'}
             </Button>
           </div>
-
-          {formData.experience.map((experience, index) => (
-            <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={() => deleteExperience(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor={`experience-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
-                  <Select
-                    value={experience.type}
-                    onValueChange={(value) => handleExperienceChange(
-                      { target: { name: 'type', value } },
-                      index
-                    )}
-                  >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Industry">Industry</SelectItem>
-                      <SelectItem value="Academia">Academia</SelectItem>
-                      <SelectItem value="Research">Research</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {getFieldError(`experience.${index}.type`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.type`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-organisation`} className="text-sm font-medium text-gray-700">Organisation</Label>
-                  <Input
-                    id={`experience-${index}-organisation`}
-                    name="organisation"
-                    value={experience.organisation}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.organisation`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.organisation`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.organisation`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-place`} className="text-sm font-medium text-gray-700">Place</Label>
-                  <Input
-                    id={`experience-${index}-place`}
-                    name="place"
-                    value={experience.place}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.place`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.place`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.place`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-period_from`} className="text-sm font-medium text-gray-700">Period From</Label>
-                  <Input
-                    id={`experience-${index}-period_from`}
-                    name="period_from"
-                    type="date"
-                    value={formatDateForInput(experience.period_from)}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.period_from`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.period_from`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.period_from`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-period_to`} className="text-sm font-medium text-gray-700">Period To</Label>
-                  <Input
-                    id={`experience-${index}-period_to`}
-                    name="period_to"
-                    type="date"
-                    value={formatDateForInput(experience.period_to)}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-monthly_compensation`} className="text-sm font-medium text-gray-700">Monthly Compensation</Label>
-                  <Input
-                    id={`experience-${index}-monthly_compensation`}
-                    name="monthly_compensation"
-                    type="number"
-                    value={experience.monthly_compensation}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.monthly_compensation`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.monthly_compensation`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.monthly_compensation`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-designation`} className="text-sm font-medium text-gray-700">Designation</Label>
-                  <Input
-                    id={`experience-${index}-designation`}
-                    name="designation"
-                    value={experience.designation}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.designation`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.designation`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.designation`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`experience-${index}-nature_of_work`} className="text-sm font-medium text-gray-700">Nature of Work</Label>
-                  <Input
-                    id={`experience-${index}-nature_of_work`}
-                    name="nature_of_work"
-                    value={experience.nature_of_work}
-                    onChange={(e) => handleExperienceChange(e, index)}
-                    className={getFieldError(`experience.${index}.nature_of_work`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`experience.${index}.nature_of_work`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`experience.${index}.nature_of_work`)}</p>
-                  )}
-                </div>
-
-                <div className="col-span-2">
-                  <Label className="text-sm font-medium text-gray-700">Experience Certificate Upload</Label>
-                  <div className="text-xs text-gray-500 mb-2">
-                    Please upload only PDF files (max size: 5MB)
-                  </div>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handleExperienceFileUpload(e, index)}
-                    disabled={isUploading}
-                    className="h-9 text-sm"
-                  />
-                  {experience.experience_certificate_url && (
-                    <div className="mt-2">
-                      <object
-                        data={`${experience.experience_certificate_url}#toolbar=0&navpanes=0`}
-                        type="application/pdf"
-                        className="w-full h-[400px] border border-gray-200 rounded"
-                      >
-                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={experience.experience_certificate_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                      </object>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Project Titles */}
-        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-          <h2 className="text-lg font-semibold">Title of UG/PG Project</h2>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ug_project_title">UG Project Title</Label>
-              <Input
-                id="ug_project_title"
-                name="ug_project_title"
-                value={formData.ug_project_title}
-                onChange={handleChange}
-                placeholder="Enter your UG project title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pg_project_title">PG Project Title</Label>
-              <Input
-                id="pg_project_title"
-                name="pg_project_title"
-                value={formData.pg_project_title}
-                onChange={handleChange}
-                placeholder="Enter your PG project title"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Interested Area of Research */}
-        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-          <h2 className="text-lg font-semibold">Interested Area of Research</h2>
-          
-          {/* Department Selection */}
-          <div className="space-y-4">
-            <Label>Select Department</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="research_cse"
-                  name="research_department"
-                  value="cse"
-                  checked={formData.research_department === "cse"}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Label htmlFor="research_cse">Computer Science & Engineering</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="research_ece"
-                  name="research_department"
-                  value="ece"
-                  checked={formData.research_department === "ece"}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Label htmlFor="research_ece">Electronics & Communication Engineering</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="research_ee"
-                  name="research_department"
-                  value="ee"
-                  checked={formData.research_department === "ee"}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Label htmlFor="research_ee">Electrical Engineering</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="research_me"
-                  name="research_department"
-                  value="me"
-                  checked={formData.research_department === "me"}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Label htmlFor="research_me">Mechanical Engineering</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="research_eie"
-                  name="research_department"
-                  value="eie"
-                  checked={formData.research_department === "eie"}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Label htmlFor="research_eie">Electronics and Instrumentation Engineering</Label>
-              </div>
-            </div>
-          </div>
-
-          {/* Specialization/Area of Research */}
-          <div className="space-y-2">
-            <Label htmlFor="research_area">Specialization/Area of Research</Label>
-            <Input
-              id="research_area"
-              name="research_area"
-              value={formData.research_area}
-              onChange={handleChange}
-              placeholder="Enter your area of research interest"
-            />
-          </div>
-        </div>
-
-        {/* Publications */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium text-gray-700">Publications</h2>
-            <Button 
-              type="button" 
-              onClick={addPublication} 
-              variant="outline"
-              className="text-sm px-3 py-1"
-            >
-              Add Publication
-            </Button>
-          </div>
-
-          {formData.publications.map((publication, index) => (
-            <div key={index} className="border border-gray-200 rounded-md p-4 space-y-4 relative">
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={() => deletePublication(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor={`publication-${index}-type`} className="text-sm font-medium text-gray-700">Type</Label>
-                  <Select
-                    value={publication.type}
-                    onValueChange={(value) => handlePublicationChange(
-                      { target: { name: 'type', value } },
-                      index
-                    )}
-                  >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Journal">Journal</SelectItem>
-                      <SelectItem value="Conference">Conference</SelectItem>
-                      <SelectItem value="Book">Book</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {getFieldError(`publications.${index}.type`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.type`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`publication-${index}-paper_title`} className="text-sm font-medium text-gray-700">Paper Title</Label>
-                  <Input
-                    id={`publication-${index}-paper_title`}
-                    name="paper_title"
-                    value={publication.paper_title}
-                    onChange={(e) => handlePublicationChange(e, index)}
-                    className={getFieldError(`publications.${index}.paper_title`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`publications.${index}.paper_title`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.paper_title`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`publication-${index}-affiliation`} className="text-sm font-medium text-gray-700">Affiliation</Label>
-                  <Input
-                    id={`publication-${index}-affiliation`}
-                    name="affiliation"
-                    value={publication.affiliation}
-                    onChange={(e) => handlePublicationChange(e, index)}
-                    className={getFieldError(`publications.${index}.affiliation`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`publications.${index}.affiliation`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.affiliation`)}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor={`publication-${index}-acceptance_year`} className="text-sm font-medium text-gray-700">Acceptance Year</Label>
-                  <Input
-                    id={`publication-${index}-acceptance_year`}
-                    name="acceptance_year"
-                    type="number"
-                    value={publication.acceptance_year}
-                    onChange={(e) => handlePublicationChange(e, index)}
-                    className={getFieldError(`publications.${index}.acceptance_year`) ? "border-red-500" : ""}
-                  />
-                  {getFieldError(`publications.${index}.acceptance_year`) && (
-                    <p className="text-sm text-red-500 mt-1">{getFieldError(`publications.${index}.acceptance_year`)}</p>
-                  )}
-                </div>
-
-                <div className="col-span-2">
-                  <Label className="text-sm font-medium text-gray-700">Document Upload</Label>
-                  <div className="text-xs text-gray-500 mb-2">
-                    Please upload only PDF files (max size: 5MB)
-                  </div>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => handlePublicationFileUpload(e, index)}
-                    disabled={isUploading}
-                    className="h-9 text-sm"
-                  />
-                  {publication.document_url && (
-                    <div className="mt-2">
-                      <object
-                        data={`${publication.document_url}#toolbar=0&navpanes=0`}
-                        type="application/pdf"
-                        className="w-full h-[400px] border border-gray-200 rounded"
-                      >
-                        <p className="text-sm text-gray-600">Unable to display PDF file. <a href={publication.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> instead.</p>
-                      </object>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6">
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit'}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 }

@@ -11,6 +11,9 @@ export default function Payment() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [personalDetails, setPersonalDetails] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    screenshot_url: null
+  });
   const [formData, setFormData] = useState({
     transaction_id: '',
     transaction_date: '',
@@ -28,6 +31,7 @@ export default function Payment() {
 
   useEffect(() => {
     fetchPersonalDetails();
+    fetchPaymentDetails();
   }, []);
 
   const fetchPersonalDetails = async () => {
@@ -41,6 +45,34 @@ export default function Payment() {
     } catch (error) {
       console.error('Error fetching personal details:', error);
       toast.error('Failed to fetch personal details');
+    }
+  };
+
+  const fetchPaymentDetails = async () => {
+    try {
+      console.log('Fetching payment details...');
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payment/get`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      console.log('Payment details response:', response.data);
+      if (response.data.success && response.data.data) {
+        const payment = response.data.data;
+        setFormData({
+          transaction_id: payment.transaction_id || '',
+          transaction_date: payment.transaction_date || '',
+          issued_bank: payment.issued_bank || ''
+        });
+        setPaymentDetails({
+          screenshot_url: payment.screenshot?.url || null
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching payment details:', error);
+      if (error.response?.status !== 404) {
+        toast.error('Failed to fetch payment details');
+      }
     }
   };
 
@@ -65,12 +97,14 @@ export default function Payment() {
         }
       );
 
-      if (response.data.success) {
-        setPersonalDetails(prev => ({
+      console.log('Upload response:', response.data);
+
+      if (response.data.url) {
+        setPaymentDetails(prev => ({
           ...prev,
-          transaction_screenshot_url: response.data.url
+          screenshot_url: response.data.url
         }));
-        await fetchPersonalDetails();
+        
         toast.success('Transaction screenshot uploaded successfully', {
           style: {
             background: '#10B981',
@@ -95,52 +129,80 @@ export default function Payment() {
     setIsSubmitting(true);
 
     try {
-      // Validate form data
-      if (!formData.transaction_id || !formData.transaction_date || !formData.issued_bank) {
-        toast.error('Please fill in all transaction details');
-        return;
-      }
-
-      if (!personalDetails?.transaction_screenshot_url) {
-        toast.error('Please upload transaction screenshot');
-        return;
-      }
-
-      // Prepare payment data
+      // Prepare payment data according to schema
       const paymentData = {
         transaction_id: formData.transaction_id,
         transaction_date: formData.transaction_date,
         issued_bank: formData.issued_bank,
-        transaction_screenshot_url: personalDetails.transaction_screenshot_url,
-        amount: 500 // Fixed application fee
+        amount: 1000,
+        screenshot: {
+          url: paymentDetails.screenshot_url
+        },
+        status: 'pending'
       };
 
-      // Save payment data
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/payment/create`,
-        paymentData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
-      );
+      console.log('Payment Data being sent:', paymentData);
 
-      if (response.data.success) {
-        toast.success('Payment details saved successfully', {
-          style: {
-            background: '#10B981',
-            color: '#ffffff',
-          },
-          iconTheme: {
-            primary: '#ffffff',
-            secondary: '#10B981',
-          },
-        });
-        navigate('/print-application');
+      // Validate form data
+      if (!formData.transaction_id || !formData.transaction_date || !formData.issued_bank) {
+        console.log('Validation failed: Missing transaction details');
+        toast.error('Please fill in all transaction details');
+        return;
+      }
+
+      if (!paymentData.screenshot.url) {
+        console.log('Validation failed: No transaction screenshot found');
+        toast.error('Please upload transaction screenshot');
+        return;
+      }
+
+      // Try to update payment data first
+      try {
+        console.log('Attempting to update payment details...');
+        const updateResponse = await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}/api/payment/update`,
+          paymentData,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+
+        if (updateResponse.data.success) {
+          console.log('Payment details updated successfully');
+          toast.success('Payment details updated successfully');
+          navigate('/enclosures');
+          return;
+        }
+      } catch (updateError) {
+        // If update fails with 404, try to create new payment
+        if (updateError.response?.status === 404) {
+          console.log('No existing payment found, creating new payment...');
+          const createResponse = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/payment/create`,
+            { ...paymentData, user: personalDetails.user },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            }
+          );
+
+          if (createResponse.data.success) {
+            console.log('Payment details created successfully');
+            toast.success('Payment details saved successfully');
+            navigate('/enclosures');
+            return;
+          }
+        } else {
+          throw updateError;
+        }
       }
     } catch (error) {
-      console.error('Error saving payment details:', error);
+      console.error('Error in handleSubmit:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
       toast.error(error.response?.data?.message || 'Failed to save payment details');
     } finally {
       setIsSubmitting(false);
@@ -156,7 +218,7 @@ export default function Payment() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-yellow-800 mb-2">Important Payment Information</h3>
             <ul className="list-disc list-inside space-y-2 text-yellow-700">
-              <li>Application fee: Rs. 500/- (non-refundable)</li>
+              <li>Application fee: Rs. 1000/- (non-refundable)</li>
               <li>SC/ST/PH candidates are exempted from application fee</li>
               <li>Payment should be made through online transaction</li>
             </ul>
@@ -233,19 +295,19 @@ export default function Payment() {
                   </div>
                 </div>
 
-                {personalDetails?.transaction_screenshot_url && (
+                {paymentDetails?.screenshot_url && (
                   <div className="mt-4">
                     <Label>Uploaded Screenshot</Label>
                     <div className="mt-2 w-full h-[500px] border border-gray-200 rounded overflow-hidden">
                       <img
-                        src={personalDetails.transaction_screenshot_url}
+                        src={paymentDetails.screenshot_url}
                         alt="Transaction Screenshot"
                         className="w-full h-full object-contain"
                       />
                     </div>
                     <div className="mt-2">
                       <a
-                        href={personalDetails.transaction_screenshot_url}
+                        href={paymentDetails.screenshot_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline text-sm"

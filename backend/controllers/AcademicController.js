@@ -50,6 +50,35 @@ const createAcademic = async (req, res) => {
       userid: req.user._id // Use the user ID from JWT middleware
     });
 
+    // Validate examination results if present
+    if (academic.qualifications && academic.qualifications.length > 0) {
+      for (const qualification of academic.qualifications) {
+        if (qualification.examination_results) {
+          // Validate UG results only for UG qualifications
+          if (qualification.standard === "UG" && qualification.examination_results.ug) {
+            const ug = qualification.examination_results.ug;
+            // Removed validation for UG results
+          }
+
+          // Validate PG results only for PG qualifications
+          if (qualification.standard === "PG" && qualification.examination_results.pg) {
+            const pg = qualification.examination_results.pg;
+            // Set branch from the qualification's branch field if it's a valid branch
+            const validBranches = ["CSE", "ECE", "EIE", "EEE", "ME"];
+            if (validBranches.includes(qualification.branch)) {
+              pg.branch = qualification.branch;
+            } else {
+              // If branch is not valid, set it to the research interest branch if it's valid
+              if (validBranches.includes(academic.research_interest.branch)) {
+                pg.branch = academic.research_interest.branch;
+              }
+            }
+            // Removed validation for PG results
+          }
+        }
+      }
+    }
+
     // Log the academic object before validation
     console.log('Academic object before validation:', JSON.stringify(academic, null, 2));
 
@@ -120,11 +149,40 @@ const updateAcademic = async (req, res) => {
     const academic = await AcademicDetails.findOneAndUpdate(
       { userid: req.user._id },
       { $set: req.body },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     if (!academic) {
       return res.status(404).json({ message: "Academic details not found" });
+    }
+
+    // Validate examination results if present
+    if (academic.qualifications && academic.qualifications.length > 0) {
+      for (const qualification of academic.qualifications) {
+        if (qualification.examination_results) {
+          // Validate UG results only for UG qualifications
+          if (qualification.standard === "UG" && qualification.examination_results.ug) {
+            const ug = qualification.examination_results.ug;
+            // Removed validation for UG results
+          }
+
+          // Validate PG results only for PG qualifications
+          if (qualification.standard === "PG" && qualification.examination_results.pg) {
+            const pg = qualification.examination_results.pg;
+            // Set branch from the qualification's branch field if it's a valid branch
+            const validBranches = ["CSE", "ECE", "EIE", "EEE", "ME"];
+            if (validBranches.includes(qualification.branch)) {
+              pg.branch = qualification.branch;
+            } else {
+              // If branch is not valid, set it to the research interest branch if it's valid
+              if (validBranches.includes(academic.research_interest.branch)) {
+                pg.branch = academic.research_interest.branch;
+              }
+            }
+            // Removed validation for PG results
+          }
+        }
+      }
     }
     
     return res.status(200).json({
@@ -174,10 +232,6 @@ const uploadAcademicDocument = async (req, res) => {
       updateQuery = {
         $set: { [`qualifications.${index}.document_url`]: uploadResult.secure_url }
       };
-    } else if (documentType === 'exam') {
-      updateQuery = {
-        $set: { [`qualifying_exams.${index}.exam_certificate_url`]: uploadResult.secure_url }
-      };
     } else if (documentType === 'experience') {
       updateQuery = {
         $set: { [`experience.${index}.experience_certificate_url`]: uploadResult.secure_url }
@@ -222,13 +276,12 @@ const uploadAcademicDocument = async (req, res) => {
 const createAcademicDetails = async (req, res) => {
   try {
     const userid = req.user._id;
-    const { qualifications, qualifying_exams, experience, publications } = req.body;
+    const { qualifications, experience, publications } = req.body;
 
     // Create new academic details
     const academicDetails = new AcademicDetails({
       userid,
       qualifications,
-      qualifying_exams,
       experience,
       publications
     });

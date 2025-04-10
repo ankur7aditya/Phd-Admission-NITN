@@ -12,45 +12,56 @@ const createPersonal = async (req, res) => {
         if (!req.user?._id) {
             console.error('User not found in request');
             return res.status(401).json({
+                success: false,
                 message: 'User not authenticated'
             });
         }
 
+        // Remove user field from body if it exists to prevent override
+        const { user, ...bodyWithoutUser } = req.body;
+
         // Validate required fields
         const requiredFields = [
-            'first_name', 'last_name', 'dob', 'gender', 'nationality',
+            'first_name', 'last_name', 'date_of_birth', 'gender', 'nationality',
             'category', 'religion', 'father_name', 'mother_name',
             'marital_status', 'email', 'phone'
         ];
 
-        const missingFields = requiredFields.filter(field => !req.body[field]);
+        const missingFields = requiredFields.filter(field => !bodyWithoutUser[field]);
         if (missingFields.length > 0) {
             console.error('Missing required fields:', missingFields);
             return res.status(400).json({
+                success: false,
                 message: 'Missing required fields',
                 fields: missingFields
             });
         }
 
         // Check if personal details already exist
-        const existingDetails = await PersonalDetails.findOne({ userid: req.user._id });
+        const existingDetails = await PersonalDetails.findOne({ user: req.user._id });
         if (existingDetails) {
             console.error('Personal details already exist for user:', req.user._id);
             return res.status(400).json({
+                success: false,
                 message: 'Personal details already exist for this user'
             });
         }
 
         const personalDetails = await PersonalDetails.create({
-            userid: req.user._id,
-            ...req.body
+            user: req.user._id,
+            ...bodyWithoutUser
         });
 
         console.log('Personal details created successfully:', personalDetails);
-        return res.status(201).json(personalDetails);
+        return res.status(201).json({
+            success: true,
+            message: 'Personal details created successfully',
+            data: personalDetails
+        });
     } catch (error) {
         console.error('Error creating personal details:', error);
         return res.status(500).json({ 
+            success: false,
             message: 'Error creating personal details',
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -60,7 +71,7 @@ const createPersonal = async (req, res) => {
 
 const getPersonal = async (req, res) => {
     try {
-        const personalDetails = await PersonalDetails.findOne({ userid: req.user._id });
+        const personalDetails = await PersonalDetails.findOne({ user: req.user._id });
         if (!personalDetails) {
             return res.status(404).json({ message: "Personal details not found" });
         }
@@ -84,7 +95,7 @@ const updatePersonal = async (req, res) => {
 
         // Validate required fields
         const requiredFields = [
-            'first_name', 'last_name', 'dob', 'gender', 'nationality',
+            'first_name', 'last_name', 'date_of_birth', 'gender', 'nationality',
             'category', 'religion', 'father_name', 'mother_name',
             'marital_status', 'email', 'phone'
         ];
@@ -100,7 +111,7 @@ const updatePersonal = async (req, res) => {
 
         // Find and update the personal details
         const updatedDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { ...req.body },
             { 
                 new: true,
@@ -173,7 +184,7 @@ const uploadPhoto = async (req, res) => {
         });
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { photo: response.secure_url },
             { new: true }
         );
@@ -260,7 +271,7 @@ const uploadSignature = async (req, res) => {
         });
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { signature: response.secure_url },
             { new: true }
         );
@@ -324,7 +335,7 @@ const uploadDemandDraft = async (req, res) => {
         }
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { dd_url: response.secure_url },
             { new: true }
         );
@@ -358,7 +369,7 @@ const uploadTransactionScreenshot = async (req, res) => {
         }
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { 'transaction_details.transaction_screenshot_url': response.secure_url },
             { new: true }
         );
@@ -394,7 +405,7 @@ const updateTransactionDetails = async (req, res) => {
         const { transaction_id, transaction_date, issued_bank } = req.body;
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             {
                 'transaction_details.transaction_id': transaction_id,
                 'transaction_details.transaction_date': transaction_date,
@@ -429,7 +440,7 @@ const updateDeclaration = async (req, res) => {
         const { place, date } = req.body;
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             {
                 'declaration.place': place,
                 'declaration.date': date
@@ -463,7 +474,7 @@ const updateEnclosures = async (req, res) => {
         const enclosures = req.body;
 
         const personalDetails = await PersonalDetails.findOneAndUpdate(
-            { userid: req.user._id },
+            { user: req.user._id },
             { enclosures },
             { new: true }
         );

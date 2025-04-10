@@ -5,7 +5,7 @@ import { Input } from "./ui/input.jsx";
 import { Label } from "./ui/label.jsx";
 import { Button } from "./ui/button.jsx";
 import { Checkbox } from "./ui/checkbox.jsx";
-import { ArrowUpFromLine, Loader2 } from "lucide-react";
+import { ArrowUpFromLine, Loader2, FileText } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
@@ -60,8 +60,7 @@ const validateAddress = (address) => {
 const validateFile = (file, type) => {
   if (!file) return `Please upload your ${type}`;
   
-  // Only handle image files since this is for photo and signature
-  const maxSize = 2 * 1024 * 1024; // 2MB for images
+  const maxSize = 2 * 1024 * 1024; // 2MB
   if (file.size > maxSize) {
     return `${type.charAt(0).toUpperCase() + type.slice(1)} size should not exceed 2MB`;
   }
@@ -84,41 +83,40 @@ const formatDateForInput = (dateString) => {
 export default function AdmissionForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    programme_type: "phd", // Default to PhD
-    department: "", // Add department field
-    mode_of_phd: "", // Add mode of PhD field
+    user: localStorage.getItem('userId'),
     first_name: "",
     last_name: "",
-    dob: "",
+    date_of_birth: "",
     gender: "",
     nationality: "",
     category: "",
     religion: "",
     father_name: "",
     mother_name: "",
-    marital_status: "",
+    marital_status: "Single",
     spouse_name: "",
     email: "",
     phone: "",
-    alternate_phone: "",
-    communication_address: {
+    current_address: {
       street: "",
-      line2: "",
-      line3: "",
       city: "",
       state: "",
       pincode: "",
+      country: "India"
     },
     permanent_address: {
       street: "",
-      line2: "",
-      line3: "",
       city: "",
       state: "",
       pincode: "",
+      country: "India"
     },
-    photo: "",
-    signature: ""
+    photo: null,
+    signature: null,
+    programme_type: "Ph.D.",
+    department: "Computer Science and Engineering",
+    mode_of_phd: "Full Time",
+    status: "draft"
   });
 
   const [errors, setErrors] = useState({});
@@ -143,7 +141,7 @@ export default function AdmissionForm() {
           // Format the date before setting the form data
           const formattedData = {
             ...response.data,
-            dob: formatDateForInput(response.data.dob)
+            date_of_birth: formatDateForInput(response.data.date_of_birth)
           };
           setFormData(formattedData);
           setIsExistingData(true);
@@ -171,12 +169,10 @@ export default function AdmissionForm() {
       case 'father_name':
       case 'mother_name':
         return validateName(value);
-      case 'dob':
+      case 'date_of_birth':
         return validateAge(value);
       case 'phone':
         return validatePhone(value);
-      case 'alternate_phone':
-        return value ? validatePhone(value) : '';
       case 'email':
         return validateEmail(value);
       case 'gender':
@@ -189,7 +185,7 @@ export default function AdmissionForm() {
         return !value ? 'Religion is required' : '';
       case 'marital_status':
         return !value ? 'Marital status is required' : '';
-      case 'communication_address':
+      case 'current_address':
         return validateAddress(value);
       case 'permanent_address':
         return validateAddress(value);
@@ -200,36 +196,25 @@ export default function AdmissionForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    let newValue = value;
-
-    // Format phone numbers to remove non-digits
-    if (name === 'phone' || name === 'alternate_phone') {
-      newValue = value.replace(/\D/g, '').slice(0, 10);
-    }
-
-    // Format pincode to remove non-digits
-    if (name.includes('pincode')) {
-      newValue = value.replace(/\D/g, '').slice(0, 6);
-    }
-
+    
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: newValue
+          [child]: value
         }
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: newValue
+        [name]: value
       }));
     }
 
     // Validate field and update errors
-    const error = validateField(name, newValue);
+    const error = validateField(name, value);
     setErrors(prev => ({
       ...prev,
       [name]: error
@@ -241,7 +226,7 @@ export default function AdmissionForm() {
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        permanent_address: { ...prev.communication_address }
+        permanent_address: { ...prev.current_address }
       }));
     }
   };
@@ -258,6 +243,7 @@ export default function AdmissionForm() {
     }
 
     try {
+      setIsUploading(true);
       const formData = new FormData();
       formData.append(type, file);
 
@@ -275,7 +261,10 @@ export default function AdmissionForm() {
       if (response.data[type]) {
         setFormData(prev => ({
           ...prev,
-          [type]: response.data[type]
+          [type]: {
+            url: response.data[type],
+            type: file.type
+          }
         }));
         setErrors(prev => ({ ...prev, [type]: '' }));
         toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
@@ -287,47 +276,59 @@ export default function AdmissionForm() {
         [type]: error.response?.data?.message || `Error uploading ${type}`
       }));
       toast.error(error.response?.data?.message || `Error uploading ${type}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    let isValid = true;
-
-    // Validate all fields
-    Object.keys(formData).forEach(key => {
-      if (typeof formData[key] === 'object') {
-        const error = validateField(key, formData[key]);
-        if (error) {
-          newErrors[key] = error;
-          isValid = false;
-        }
-      } else {
-        const error = validateField(key, formData[key]);
-        if (error) {
-          newErrors[key] = error;
-          isValid = false;
-        }
-      }
-    });
-
-    // Validate spouse name based on marital status
-    if (formData.marital_status !== 'Single' && !formData.spouse_name) {
-      newErrors.spouse_name = 'Spouse name is required for married, divorced, or widowed applicants';
-      isValid = false;
+    
+    // Name validation
+    if (!formData.first_name || !/^[a-zA-Z\s]{2,30}$/.test(formData.first_name)) {
+      newErrors.first_name = 'First name must be 2-30 characters and contain only letters';
+    }
+    if (!formData.last_name || !/^[a-zA-Z\s]{2,30}$/.test(formData.last_name)) {
+      newErrors.last_name = 'Last name must be 2-30 characters and contain only letters';
     }
 
-    // Validate addresses
-    if (!sameAddress) {
-      const permanentAddressError = validateAddress(formData.permanent_address);
-      if (permanentAddressError) {
-        newErrors.permanent_address = permanentAddressError;
-        isValid = false;
+    // Date of birth validation
+    if (!formData.date_of_birth) {
+      newErrors.date_of_birth = 'Date of birth is required';
+    } else {
+      const today = new Date();
+      const birthDate = new Date(formData.date_of_birth);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 18 || age > 50) {
+        newErrors.date_of_birth = 'Age must be between 18 and 50 years';
       }
+    }
+
+    // Email validation
+    if (!formData.email || !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone validation
+    if (!formData.phone || !/^[0-9]{10}$/.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+    }
+
+    // Pincode validation
+    if (!formData.current_address.pincode || !/^[0-9]{6}$/.test(formData.current_address.pincode)) {
+      newErrors['current_address.pincode'] = 'Please enter a valid 6-digit PIN code';
+    }
+    if (!formData.permanent_address.pincode || !/^[0-9]{6}$/.test(formData.permanent_address.pincode)) {
+      newErrors['permanent_address.pincode'] = 'Please enter a valid 6-digit PIN code';
+    }
+
+    // Spouse name validation
+    if (formData.marital_status !== 'Single' && !formData.spouse_name) {
+      newErrors.spouse_name = 'Spouse name is required for married, divorced, or widowed applicants';
     }
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -364,7 +365,7 @@ export default function AdmissionForm() {
       // Format the date to ISO string for backend
       const formattedData = {
         ...formData,
-        dob: new Date(formData.dob).toISOString()
+        date_of_birth: new Date(formData.date_of_birth).toISOString()
       };
 
       console.log('Submitting form data:', formattedData);
@@ -439,24 +440,24 @@ export default function AdmissionForm() {
                 type="radio"
                 id="phd"
                 name="programme_type"
-                value="phd"
-                checked={formData.programme_type === "phd"}
+                value="Ph.D."
+                checked={formData.programme_type === "Ph.D."}
                 onChange={(e) => handleChange({ target: { name: 'programme_type', value: e.target.value } })}
                 className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
               />
-              <Label htmlFor="phd">PhD Programme</Label>
+              <Label htmlFor="phd">Ph.D. Programme</Label>
             </div>
             <div className="flex items-center space-x-2">
               <input
                 type="radio"
                 id="integrated_phd"
                 name="programme_type"
-                value="integrated_phd"
-                checked={formData.programme_type === "integrated_phd"}
+                value="Integrated Ph.D."
+                checked={formData.programme_type === "Integrated Ph.D."}
                 onChange={(e) => handleChange({ target: { name: 'programme_type', value: e.target.value } })}
                 className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
               />
-              <Label htmlFor="integrated_phd">Integrated PhD Programme</Label>
+              <Label htmlFor="integrated_phd">Integrated Ph.D. Programme</Label>
             </div>
           </div>
         </div>
@@ -464,68 +465,20 @@ export default function AdmissionForm() {
         {/* Department Selection */}
         <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
           <h2 className="text-lg font-semibold">Select Department</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="cse"
-                name="department"
-                value="cse"
-                checked={formData.department === "cse"}
-                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="cse">Computer Science & Engineering</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="ece"
-                name="department"
-                value="ece"
-                checked={formData.department === "ece"}
-                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="ece">Electronics & Communication Engineering</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="ee"
-                name="department"
-                value="ee"
-                checked={formData.department === "ee"}
-                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="ee">Electrical Engineering</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="me"
-                name="department"
-                value="me"
-                checked={formData.department === "me"}
-                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="me">Mechanical Engineering</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="eie"
-                name="department"
-                value="eie"
-                checked={formData.department === "eie"}
-                onChange={(e) => handleChange({ target: { name: 'department', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="eie">Electronics and Instrumentation Engineering</Label>
-            </div>
-          </div>
+          <select
+            id="department"
+            name="department"
+            value={formData.department}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Select Department</option>
+            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+            <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Electrical Engineering">Electrical Engineering</option>
+            <option value="Electronics and Instrumentation Engineering">Electronics and Instrumentation Engineering</option>
+          </select>
           
           {/* Notes */}
           <div className="mt-4 space-y-2 text-sm text-gray-600">
@@ -540,44 +493,18 @@ export default function AdmissionForm() {
         {/* Mode of PhD Selection */}
         <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
           <h2 className="text-lg font-semibold">Mode of PhD</h2>
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="full_time"
-                name="mode_of_phd"
-                value="full_time"
-                checked={formData.mode_of_phd === "full_time"}
-                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="full_time">Full Time</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="part_time"
-                name="mode_of_phd"
-                value="part_time"
-                checked={formData.mode_of_phd === "part_time"}
-                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="part_time">Part Time</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="full_time_sponsored"
-                name="mode_of_phd"
-                value="full_time_sponsored"
-                checked={formData.mode_of_phd === "full_time_sponsored"}
-                onChange={(e) => handleChange({ target: { name: 'mode_of_phd', value: e.target.value } })}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <Label htmlFor="full_time_sponsored">Full Time (Sponsored)</Label>
-            </div>
-          </div>
+          <select
+            id="mode_of_phd"
+            name="mode_of_phd"
+            value={formData.mode_of_phd}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Select Mode of PhD</option>
+            <option value="Full Time">Full Time</option>
+            <option value="Part Time">Part Time</option>
+            <option value="Full Time (Sponsored)">Full Time (Sponsored)</option>
+          </select>
         </div>
 
         {/* Basic Information */}
@@ -591,10 +518,12 @@ export default function AdmissionForm() {
               onChange={handleChange}
               required
               className={errors.first_name ? "border-red-500" : ""}
+              placeholder="Enter your first name"
             />
             {errors.first_name && (
               <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>
             )}
+            <p className="text-xs text-gray-500">Must be 2-30 characters, letters only</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="last_name" required>Last Name</Label>
@@ -605,29 +534,32 @@ export default function AdmissionForm() {
               onChange={handleChange}
               required
               className={errors.last_name ? "border-red-500" : ""}
+              placeholder="Enter your last name"
             />
             {errors.last_name && (
               <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>
             )}
+            <p className="text-xs text-gray-500">Must be 2-30 characters, letters only</p>
           </div>
         </div>
 
         {/* Date of Birth and Gender */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="dob" required>Date of Birth</Label>
+            <Label htmlFor="date_of_birth" required>Date of Birth</Label>
             <Input
-              id="dob"
-              name="dob"
+              id="date_of_birth"
+              name="date_of_birth"
               type="date"
-              value={formData.dob}
+              value={formData.date_of_birth}
               onChange={handleChange}
               required
-              className={errors.dob ? "border-red-500" : ""}
+              className={errors.date_of_birth ? "border-red-500" : ""}
             />
-            {errors.dob && (
-              <p className="text-sm text-red-500 mt-1">{errors.dob}</p>
+            {errors.date_of_birth && (
+              <p className="text-sm text-red-500 mt-1">{errors.date_of_birth}</p>
             )}
+            <p className="text-xs text-gray-500">Age must be between 18-50 years</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="gender" required>Gender</Label>
@@ -660,7 +592,9 @@ export default function AdmissionForm() {
               value={formData.nationality}
               onChange={handleChange}
               required
+              placeholder="Enter your nationality"
             />
+            <p className="text-xs text-gray-500">Enter your country of citizenship</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="category" required>Category</Label>
@@ -679,7 +613,40 @@ export default function AdmissionForm() {
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">Select your reservation category</p>
           </div>
+        </div>
+
+        {/* Physically Challenged */}
+        <div className="space-y-2">
+          <Label htmlFor="physically_challenged" required>Are you a Person with Disability (PwD) of 40% and above?</Label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="physically_challenged_yes"
+                name="physically_challenged"
+                value="true"
+                checked={formData.physically_challenged === true}
+                onChange={(e) => handleChange({ target: { name: 'physically_challenged', value: e.target.value === 'true' } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="physically_challenged_yes">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="physically_challenged_no"
+                name="physically_challenged"
+                value="false"
+                checked={formData.physically_challenged === false}
+                onChange={(e) => handleChange({ target: { name: 'physically_challenged', value: e.target.value === 'true' } })}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <Label htmlFor="physically_challenged_no">No</Label>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">Select Yes if you have a disability of 40% or more</p>
         </div>
 
         {/* Religion and Marital Status */}
@@ -712,6 +679,24 @@ export default function AdmissionForm() {
             </Select>
           </div>
         </div>
+
+        {/* Spouse Name (Conditional) */}
+        {formData.marital_status !== 'Single' && (
+          <div className="space-y-2">
+            <Label htmlFor="spouse_name" required>Spouse's Name</Label>
+            <Input
+              id="spouse_name"
+              name="spouse_name"
+              value={formData.spouse_name}
+              onChange={handleChange}
+              required
+              className={errors.spouse_name ? "border-red-500" : ""}
+            />
+            {errors.spouse_name && (
+              <p className="text-sm text-red-500 mt-1">{errors.spouse_name}</p>
+            )}
+          </div>
+        )}
 
         {/* Parent Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -749,10 +734,12 @@ export default function AdmissionForm() {
               onChange={handleChange}
               required
               className={errors.email ? "border-red-500" : ""}
+              placeholder="example@domain.com"
             />
             {errors.email && (
               <p className="text-sm text-red-500 mt-1">{errors.email}</p>
             )}
+            <p className="text-xs text-gray-500">Enter a valid email address</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone" required>Phone Number</Label>
@@ -764,22 +751,30 @@ export default function AdmissionForm() {
               onChange={handleChange}
               required
               className={errors.phone ? "border-red-500" : ""}
+              placeholder="10-digit mobile number"
             />
             {errors.phone && (
               <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
             )}
+            <p className="text-xs text-gray-500">Enter a valid 10-digit mobile number</p>
           </div>
         </div>
 
         <div>
-          <Label htmlFor="alternate_phone">Alternate Phone Number</Label>
+          <Label htmlFor="current_address.pincode" required>Pincode</Label>
           <Input
-            id="alternate_phone"
-            name="alternate_phone"
-            type="tel"
-            value={formData.alternate_phone}
+            id="current_address.pincode"
+            name="current_address.pincode"
+            value={formData.current_address.pincode}
             onChange={handleChange}
+            required
+            className={errors['current_address.pincode'] ? "border-red-500" : ""}
+            placeholder="6-digit pincode"
           />
+          {errors['current_address.pincode'] && (
+            <p className="text-sm text-red-500 mt-1">{errors['current_address.pincode']}</p>
+          )}
+          <p className="text-xs text-gray-500">Enter a valid 6-digit pincode</p>
         </div>
 
         {/* Communication Address */}
@@ -787,66 +782,54 @@ export default function AdmissionForm() {
           <h2 className="text-xl font-semibold">Communication Address</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label htmlFor="communication_address.street" required>Street Address</Label>
+              <Label htmlFor="current_address.street" required>Street Address</Label>
               <Input
-                id="communication_address.street"
-                name="communication_address.street"
-                value={formData.communication_address.street}
+                id="current_address.street"
+                name="current_address.street"
+                value={formData.current_address.street}
                 onChange={handleChange}
                 required
+                placeholder="Enter your street address"
               />
+              <p className="text-xs text-gray-500">Enter your complete street address</p>
             </div>
             <div className="col-span-2">
-              <Label htmlFor="communication_address.line2">Address Line 2</Label>
+              <Label htmlFor="current_address.city" required>City</Label>
               <Input
-                id="communication_address.line2"
-                name="communication_address.line2"
-                value={formData.communication_address.line2}
+                id="current_address.city"
+                name="current_address.city"
+                value={formData.current_address.city}
                 onChange={handleChange}
+                required
+                placeholder="Enter your city"
               />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="communication_address.line3">Address Line 3</Label>
-              <Input
-                id="communication_address.line3"
-                name="communication_address.line3"
-                value={formData.communication_address.line3}
-                onChange={handleChange}
-              />
+              <p className="text-xs text-gray-500">Enter your city name</p>
             </div>
             <div>
-              <Label htmlFor="communication_address.city" required>City</Label>
+              <Label htmlFor="current_address.state" required>State</Label>
               <Input
-                id="communication_address.city"
-                name="communication_address.city"
-                value={formData.communication_address.city}
+                id="current_address.state"
+                name="current_address.state"
+                value={formData.current_address.state}
                 onChange={handleChange}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="communication_address.state" required>State</Label>
+              <Label htmlFor="current_address.pincode" required>Pincode</Label>
               <Input
-                id="communication_address.state"
-                name="communication_address.state"
-                value={formData.communication_address.state}
+                id="current_address.pincode"
+                name="current_address.pincode"
+                value={formData.current_address.pincode}
                 onChange={handleChange}
                 required
+                className={errors['current_address.pincode'] ? "border-red-500" : ""}
+                placeholder="6-digit pincode"
               />
-            </div>
-            <div>
-              <Label htmlFor="communication_address.pincode" required>Pincode</Label>
-              <Input
-                id="communication_address.pincode"
-                name="communication_address.pincode"
-                value={formData.communication_address.pincode}
-                onChange={handleChange}
-                required
-                className={errors['communication_address.pincode'] ? "border-red-500" : ""}
-              />
-              {errors['communication_address.pincode'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['communication_address.pincode']}</p>
+              {errors['current_address.pincode'] && (
+                <p className="text-sm text-red-500 mt-1">{errors['current_address.pincode']}</p>
               )}
+              <p className="text-xs text-gray-500">Enter a valid 6-digit pincode</p>
             </div>
           </div>
         </div>
@@ -877,26 +860,6 @@ export default function AdmissionForm() {
               />
             </div>
             <div className="col-span-2">
-              <Label htmlFor="permanent_address.line2">Address Line 2</Label>
-              <Input
-                id="permanent_address.line2"
-                name="permanent_address.line2"
-                value={formData.permanent_address.line2}
-                onChange={handleChange}
-                disabled={sameAddress}
-              />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="permanent_address.line3">Address Line 3</Label>
-              <Input
-                id="permanent_address.line3"
-                name="permanent_address.line3"
-                value={formData.permanent_address.line3}
-                onChange={handleChange}
-                disabled={sameAddress}
-              />
-            </div>
-            <div>
               <Label htmlFor="permanent_address.city" required>City</Label>
               <Input
                 id="permanent_address.city"
@@ -949,7 +912,7 @@ export default function AdmissionForm() {
                 disabled={isUploading}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Supported formats: JPEG, PNG, GIF. Max size: 2MB
+                Supported formats: JPEG, PNG, GIF. Max size: 2MB. Must be 2x2 inches passport size photo
               </p>
             </div>
             {isUploading && (
@@ -961,7 +924,7 @@ export default function AdmissionForm() {
             {formData.photo && (
               <div className="w-20 h-20 border rounded overflow-hidden relative group">
                 <img
-                  src={formData.photo}
+                  src={formData.photo.url}
                   alt="Photo preview"
                   className="w-full h-full object-cover"
                 />
@@ -969,7 +932,7 @@ export default function AdmissionForm() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, photo: '' }))}
+                    onClick={() => setFormData(prev => ({ ...prev, photo: null }))}
                     className="text-white"
                   >
                     Remove
@@ -1011,7 +974,7 @@ export default function AdmissionForm() {
             {formData.signature && (
               <div className="w-40 h-20 border rounded overflow-hidden relative group">
                 <img
-                  src={formData.signature}
+                  src={formData.signature.url}
                   alt="Signature preview"
                   className="w-full h-full object-contain"
                 />
@@ -1019,7 +982,7 @@ export default function AdmissionForm() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, signature: '' }))}
+                    onClick={() => setFormData(prev => ({ ...prev, signature: null }))}
                     className="text-white"
                   >
                     Remove

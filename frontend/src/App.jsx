@@ -11,6 +11,7 @@ import Header from './components/Header';
 import Payment from './components/Payment';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import EnclosuresForm from "./components/EnclosuresForm.jsx";
 
 function LoadingSpinner() {
   return (
@@ -72,6 +73,10 @@ function AppContent() {
             <Route
               path="/print-application"
               element={isAuthenticated ? <PrintApplication /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/enclosures"
+              element={isAuthenticated ? <EnclosuresForm /> : <Navigate to="/login" />}
             />
 
             {/* Default Route */}

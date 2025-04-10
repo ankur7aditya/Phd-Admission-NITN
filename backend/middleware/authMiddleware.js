@@ -12,7 +12,7 @@ const verifyJWT = async (req, res, next) => {
         }
 
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        const user = await User.findById(decodedToken?._id).select("-password");
+        const user = await User.findById(decodedToken?._id).select("_id -password");
 
         if (!user) {
             return res.status(401).json({
